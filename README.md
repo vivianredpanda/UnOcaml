@@ -2,3 +2,4 @@
 3110 Final Project
 Team Members:
 Sophia Wang (sw895)
+Ava Slade (aes372)
