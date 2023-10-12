@@ -23,7 +23,7 @@ git-repo: "https://github.coecis.cornell.edu/sw895/final_project"
 demo-video-url: ""
 # Write a short, attention-grabbing description of your project.
 desc: >
-  Our project is an uno simulator. It supports one player game play against 
+  Our project is an UNO simulator. It supports one player game play against 
   computer run opponents. How Uno works is that players place down cards that
   are either of the same color or number as the previous card with the goal of 
   getting down to 0 cards. 
