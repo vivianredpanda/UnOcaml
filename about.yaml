@@ -1,0 +1,29 @@
+---
+# Members of your group.
+group:
+  - name: Vivian Huang
+    netid: vyh5
+  - name: Sophia Wang 
+    netid: sw895
+  - name: Ava Slade
+    netid: aes372
+  - name: Justine Eng
+    netid: jse77
+# Your PM.
+pm:
+  name: Cyrus Irani
+  netid: cri23
+# Set to false if you don't want your gallery entry to be public.
+publish: false
+# Pithy title
+title: "UnOCaml"
+# OK if this is a Cornell Github link, but public gallery viewers won't be able to see it.
+git-repo: "https://github.coecis.cornell.edu/sw895/final_project"
+# If you have no demo screencast, replace the url string with an empty string ""
+demo-video-url: ""
+# Write a short, attention-grabbing description of your project.
+desc: >
+  Our project is an uno simulator. It supports one player game play against 
+  computer run opponents. How Uno works is that players place down cards that
+  are either of the same color or number as the previous card with the goal of 
+  getting down to 0 cards. 
