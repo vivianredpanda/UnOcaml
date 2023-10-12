@@ -4,10 +4,10 @@ module type Deck = sig
   (** Type representing the data in the deck. *)
 
   val draw : 'a t -> 'a * 'a t
-  (** Draw a card from the deck. Returns the card drawn and the new deck *)
+  (** Draw a card from the deck. Returns the card drawn and the updated deck. *)
 
   val deal : 'a t -> 'a t * 'a list
-  (** Draws 7 cards from the deck. Returns the new deck and the . *)
+  (** Draws 7 cards from the deck. Returns the new deck and a list of 7 cards. *)
 
   val empty : 'a t -> 'a t
   (** Returns an empty deck. *)
