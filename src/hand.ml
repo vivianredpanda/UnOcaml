@@ -19,10 +19,16 @@ end
 module Hand : Hand = struct
   type 'a t = 'a list
 
+  (* Checks that card c exists in h *)
+  let check_valid_card (c : 'a) (h : 'a t) = failwith "Unimplemented"
   let add_card (c : 'a) (h : 'a t) : 'a t = failwith "Unimplemented"
-  let play_card (c : 'a) (h : 'a t) : 'a t = failwith "Unimplemented"
-  let of_list (lst : 'a list) : 'a t = failwith "Unimplemented"
-  let to_list (h : 'a t) : 'a list = failwith "Unimplemented"
+
+  let play_card (c : 'a) (h : 'a t) : 'a t =
+    if check_valid_card c h then List.filter (fun x -> x <> c) h
+    else raise (Invalid_argument "The card provided is not in your hand")
+
+  let of_list (lst : 'a list) : 'a t = lst
+  let to_list (h : 'a t) : 'a list = h
 end
 
 (** comment *)
