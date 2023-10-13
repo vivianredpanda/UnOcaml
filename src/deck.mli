@@ -14,7 +14,8 @@ module type Deck = sig
       Requires the given deck is non-empty. *)
 
   val deal : 'a t -> 'a t * 'a list
-  (** Draws 7 cards from the deck. Returns the new deck and a list of 7 cards. *)
+  (** Draws 7 cards from the deck. Returns the new deck and a list of 7 cards.
+      Requires the deck contains at least 7 cards. *)
 
   val empty : 'a t -> 'a t
   (** Returns an empty deck. *)
