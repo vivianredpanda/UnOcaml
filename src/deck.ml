@@ -21,7 +21,18 @@ module Deck : Deck = struct
 
   let to_list (deck : 'a t) = deck
   let of_list (lst : 'a list) = lst
-  let draw (deck : 'a t) = failwith "unimplemented"
+
+  (** Remove a card [card] from the given deck [deck]. Returns the updated deck.
+      Raises Invalid_argument if card is not in the deck or [deck] is empty. *)
+  let rec remove (card : 'a) (deck : 'a t) =
+    match deck with
+    | [] -> raise (Invalid_argument "card not in deck")
+    | h :: t -> if h = card then t else remove card t
+
+  let draw (deck : 'a t) =
+    let card = List.nth deck (Random.int (List.length deck)) in
+    (card, remove card deck)
+
   let deal (deck : 'a t) = failwith "unimplemented"
   let empty (deck : 'a t) = []
   let size (deck : 'a t) = List.length deck
