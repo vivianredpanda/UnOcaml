@@ -22,6 +22,9 @@ module type Hand = sig
 
   val to_list : 'a t -> 'a list
   (* Takes in a Hand of cards and returns it as a list of cards. *)
+
+  val check_valid_card : 'a -> 'a t -> bool
+  (* Takes in a card and a hand and checks if the card is in the hand. *)
 end
 
 module Hand : Hand
