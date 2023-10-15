@@ -17,8 +17,11 @@ module type Deck = sig
   (** Draws 7 cards from the deck. Returns the new deck and a list of 7 cards.
       Requires the deck contains at least 7 cards. *)
 
-  val empty : 'a t -> 'a t
-  (** Returns an empty deck. *)
+  val is_empty : 'a t -> bool
+  (** Returns whether or not the deck is empty. *)
+
+  val reset : _ -> 'a t
+  (** Returns the default deck with 108 cards *)
 
   val size : 'a t -> int
   (** Returns the number of items in the deck. *)

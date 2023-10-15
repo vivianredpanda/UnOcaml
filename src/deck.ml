@@ -12,7 +12,8 @@ module type Deck = sig
   val of_list : 'a list -> 'a t
   val draw : 'a t -> 'a * 'a t
   val deal : 'a t -> 'a t * 'a list
-  val empty : 'a t -> 'a t
+  val is_empty : 'a t -> bool
+  val reset : unit -> 'a t
   val size : 'a t -> int
 end
 
@@ -45,6 +46,12 @@ module Deck : Deck = struct
         deal_helper (card :: lst) new_deck (n - 1)
 
   let deal (deck : 'a t) = deal_helper [] deck 7
-  let empty (deck : 'a t) = []
+
+  let is_empty (deck : 'a t) : bool =
+    match to_list deck with
+    | [] -> true
+    | _ -> false
+
+  let reset () : 'a t = failwith "unim"
   let size (deck : 'a t) = List.length deck
 end
