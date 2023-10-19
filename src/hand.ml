@@ -34,5 +34,3 @@ module Hand : Hand = struct
   let of_list (lst : 'a list) : 'a t = lst
   let to_list (h : 'a t) : 'a list = h
 end
-
-(** comment *)

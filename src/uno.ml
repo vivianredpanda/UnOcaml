@@ -1,4 +1,4 @@
-open Hand
+open Card
 open Deck
 
 (* game file *)
@@ -13,11 +13,26 @@ open Deck
 
 (* module Move : Move = struct (* let deck *) (* Deck.reset *) end *)
 
-module type Game = sig end
+module type Game = sig
+  type 'a t
 
-module Game : Game = struct
-  (* let deck *)
-  (* Deck.reset *)
+  val build : unit -> 'a t
+  val play_card : 'a t -> 'b -> 'a t
+  val play_round : 'a t -> string -> 'a t
+end
+
+module Game = struct
+  type 'a t = {
+    curr_deck : 'a Deck.t;
+    curr_card : Card.card;
+    curr_player : int; (* hands : Hand.Hand.t list; *)
+  }
+
+  (* Check if move is valid and return true if valid or false if invalid. *)
+  let check_play : 'a t -> Card.card -> bool = failwith "unim"
+  let build : unit -> 'a t = failwith "unim"
+  let play_card : 'a t -> Card.card -> 'a t = failwith "unim"
+  let play_round : 'a t -> string -> 'a t = failwith "unim"
 end
 
 (** robot code here to generate random card *)
