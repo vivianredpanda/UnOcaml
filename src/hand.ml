@@ -6,6 +6,7 @@
    getting new card - returns what card you get - and remove that from deck
    to_list list of cards to hand *)
 open Card
+open Deck
 
 module type Hand = sig
   type 'a t

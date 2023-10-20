@@ -1,3 +1,5 @@
+open Card
+
 (** The signature of a deck of cards *)
 module type Deck = sig
   type 'a t

@@ -1,3 +1,4 @@
+open Card
 open Deck
 
 (* putting down card - checking if chosen card is valid (hidden method in .ml)

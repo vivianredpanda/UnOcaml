@@ -1,2 +1,3 @@
 (library
- (name unocaml))
+ (name unocaml)
+ (public_name Unocaml))
