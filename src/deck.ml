@@ -10,6 +10,7 @@ module type Deck = sig
 
   val to_list : t -> Card.card list
   val of_list : Card.card list -> t
+  val remove : Card.card -> t -> t
   val draw : t -> Card.card * t
   val deal : t -> t * Card.card list
   val is_empty : t -> bool
@@ -23,8 +24,6 @@ module Deck : Deck = struct
   let to_list (deck : t) = deck
   let of_list (lst : Card.card list) = lst
 
-  (** Remove a card [card] from the given deck [deck]. Returns the updated deck.
-      Raises Invalid_argument if card is not in the deck or [deck] is empty. *)
   let rec remove (card : Card.card) (deck : t) =
     match deck with
     | [] -> raise (Invalid_argument "card not in deck")

@@ -9,6 +9,10 @@ module type Deck = sig
   val of_list : Card.Card.card list -> t
   (** Convert a list of items into a deck. *)
 
+  val remove : Card.Card.card -> t -> t
+  (** Remove a card from the given deck. Returns the updated deck. Raises
+      Invalid_argument if card is not in the deck or deck is empty. *)
+
   val draw : t -> Card.Card.card * t
   (** Draw a card from the deck. Returns the card drawn and the updated deck.
       Requires the given deck is non-empty. *)

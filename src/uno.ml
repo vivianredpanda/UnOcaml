@@ -27,7 +27,7 @@ module Game = struct
     curr_deck : Deck.t;
     curr_card : Card.card;
     curr_player : int;
-    hands : Card.card list list;
+    hands : Hand.t list;
   }
 
   (* Check if move is valid and return true if valid or false if invalid. *)
@@ -41,7 +41,7 @@ module Game = struct
     | 0 -> (lst, deck)
     | n ->
         let new_deck, hand = Deck.deal deck in
-        deal_hands new_deck (hand :: lst) (n - 1)
+        deal_hands new_deck (Hand.of_list hand :: lst) (n - 1)
 
   let build n =
     let start_deck = Deck.reset () in
@@ -54,7 +54,29 @@ module Game = struct
       hands = starting_hands;
     }
 
-  let play_card : t -> t = failwith "unim"
+  (* Given a list [hands], an index of that list [player], and an element
+     [new_hand] to add at that index, replaces the previous element at the index
+     with [new_hand] and returns the updated list. *)
+  let rec replace (hands : 'b list) (player : int) (new_hand : 'b) =
+    match hands with
+    | [] -> []
+    | h :: t ->
+        if player = 0 then new_hand :: t
+        else h :: replace t (player - 1) new_hand
+
+  (* Given a card, a player index, and a total number of players, returns the
+     index of the next player. Requires 0 <= [player] < [n] - 1. *)
+  let next_player (card : Card.card) (player : int) (n : int) = failwith "unim"
+
+  let play_card (game : t) (card : Card.card) (deck : Deck.t) =
+    if check_play game card then
+      let player = game.curr_player in
+      let hand = Hand.play_card card (List.nth game.hands player) in
+      let hands = replace game.hands player hand in
+      let next_player = next_player card player (List.length hands) in
+      { curr_deck = deck; curr_card = card; curr_player = next_player; hands }
+    else raise (Invalid_argument "invalid move")
+
   let play_round : t -> string -> t = failwith "unim"
 end
 
