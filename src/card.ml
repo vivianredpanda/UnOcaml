@@ -46,6 +46,10 @@ module Card = struct
     | Yellow -> "Yellow"
     | Any -> "Any"
 
+  (* TODO: if input string has no spaces (List.nth will not work) make it not
+     raise failure AND if not formatted correctly return some output in terminal
+     instead *)
+
   (** Takes in a string representation of a card, and returns a card. Requires:
       name is in the form "Color Number" (eg: Red 6), "Color Reverse", "Color
       Plus Number" (eg: Yellow Plus 5), "Color Skip", "Color Wildcard" , "Color
@@ -53,10 +57,10 @@ module Card = struct
   let to_card (name : string) : card =
     let lst = String.split_on_char ' ' name |> List.filter (fun x -> x <> "") in
     let c = to_color (List.nth lst 0) in
-    let second = List.nth lst 2 in
+    let second = List.nth lst 1 in
     match second with
     | "Reverse" -> Reverse c
-    | "Plus" -> Plus (int_of_string (List.nth lst 3), c)
+    | "Plus" -> Plus (int_of_string (List.nth lst 2), c)
     | "Skip" -> Skip c
     | "Wildcard" -> Wildcard c
     | "Wildcard4" -> Wildcard4 c
