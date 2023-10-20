@@ -1,5 +1,3 @@
-open Card
-
 (** The signature of a deck of cards *)
 module type Deck = sig
   type 'a t
@@ -22,7 +20,7 @@ module type Deck = sig
   val is_empty : 'a t -> bool
   (** Returns whether or not the deck is empty. *)
 
-  val reset : _ -> 'a t
+  val reset : unit -> 'a t
   (** Returns the default deck with 108 cards *)
 
   val size : 'a t -> int

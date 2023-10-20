@@ -1,14 +1,10 @@
-open Hand
-
 (* error: This is an alias for module Unocaml__Hand, which is missing *)
-open Deck
-open Card
 
 (* future issue to ponder: how to do reverse, skip, add card etc -> bc something
    to figure out is how to store other players' stuff *)
 (* note: for now will be the same ish as game because it is one-player only *)
 
-module type Move = sig end
+(* module type Move = sig end *)
 (** A model that can progress the game based on a single move. *)
 (* Each move is defined by card * hand * deck which is the card which was
    played, the new hand fo the players after that card was played, and*the new
