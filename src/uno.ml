@@ -18,7 +18,7 @@ module type Game = sig
   type t
 
   val build : int -> t
-  val play_card : t -> t
+  val play_card : t -> Card.card -> Hand.t -> t
   val play_round : t -> string -> t
 end
 
@@ -88,24 +88,22 @@ module Game = struct
      reverse or skip is played. *)
 
   (* Given a game state, the index of the current player, the current player's
-     hand after playing a card, the card played, and the current_deck, return
-     the list of hands of all the players based on the card played, and the
-     updated deck. *)
+     hand after playing a card, and the card played, return the list of hands of
+     all the players based on the card played, and the updated deck. *)
   let update_hands (game : t) (player : int) (new_hand : 'b) (card : Card.card)
-      (deck : Deck.t) =
+      =
     match card with
     | Number _ | Wildcard _ | Skip _ ->
-        (replace game.hands player new_hand, deck)
+        (replace game.hands player new_hand, game.curr_deck)
     | _ -> failwith "Non-number card functionality unimplemented"
   (* To-do: Add non-number card functionality to switch hands around when
      reverse is played, and add cards to the next player's deck if Plus/
      Wildcard4 is played. *)
 
-  let play_card (game : t) (card : Card.card) (deck : Deck.t) =
+  let play_card (game : t) (card : Card.card) (new_hand : Hand.t) =
     if check_play game card then
       let player = game.curr_player in
-      let hand = Hand.play_card card (List.nth game.hands player) in
-      let hands, new_deck = update_hands game player hand card deck in
+      let hands, new_deck = update_hands game player new_hand card in
       let next_player = next_player card player (List.length hands) in
       {
         curr_deck = new_deck;

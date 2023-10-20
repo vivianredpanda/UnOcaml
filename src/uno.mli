@@ -30,12 +30,12 @@ module type Game = sig
   (* helpers: check if move is valid (takes in latest card & attempted move)
      shuffle deck: when deck runs out *)
 
-  val play_card : t -> Card.card -> Deck.t -> t
-  (** Progress the game based on a card to play. Takes in the deck where the
-      card has been played from, which is equivalent to the deck provided minus
-      the card to play. Ex: input game has a deck {a, b, c}, card to play is 
-      {b}, so input deck must be {a, c}. Raises Invalid_argument if the card to 
-      play is not valid by the rules of Uno. *)
+  val play_card : t -> Card.card -> Hand.t -> t
+  (** Progress the game based on a card to play. Takes in the hand where the
+      card has been played from, which is equivalent to the current player's 
+      hand in the game minus the card to play. Ex: current player has a hand 
+      {a, b, c}, card to play is {b}, so input hand must be {a, c}. Raises 
+      Invalid_argument if the card to play is not valid by the rules of Uno. *)
 
   val play_round : t -> string -> t
   (** Progress the game based on a user's move plus all the robot moves. *)
