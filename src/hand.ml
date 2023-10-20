@@ -9,31 +9,31 @@ open Card
 open Deck
 
 module type Hand = sig
-  type 'a t
+  type t
 
-  val add_card : 'a -> 'a t -> 'a t
-  val play_card : 'a -> 'a t -> 'a t
-  val of_list : 'a list -> 'a t
-  val to_list : 'a t -> 'a list
-  val check_valid_card : 'a -> 'a t -> bool
+  val add_card : Card.card -> t -> t
+  val play_card : Card.card -> t -> t
+  val of_list : Card.card list -> t
+  val to_list : t -> Card.card list
+  val check_valid_card : Card.card -> t -> bool
 end
 
 module Hand : Hand = struct
-  type 'a t = 'a list
+  type t = Card.card list
 
   (* Checks that card c exists in h *)
-  let rec check_valid_card (c : 'a) (h : 'a t) : bool =
+  let rec check_valid_card (c : Card.card) (h : t) : bool =
     match h with
     | [] -> false
     | h :: t -> if h = c then true else check_valid_card c t
 
-  let add_card (c : 'a) (h : 'a t) : 'a t = c :: h
+  let add_card (c : Card.card) (h : t) : t = c :: h
 
-  let play_card (c : 'a) (h : 'a t) : 'a t =
+  let play_card (c : Card.card) (h : t) : t =
     if check_valid_card c h then List.filter (fun x -> x <> c) h
     else raise (Invalid_argument "The card provided is not in your hand")
 
-  let of_list (lst : 'a list) : 'a t = lst
-  let to_list (h : 'a t) : 'a list = h
+  let of_list (lst : Card.card list) : t = lst
+  let to_list (h : t) : Card.card list = h
   let check_valid_card = failwith "unimplemented"
 end

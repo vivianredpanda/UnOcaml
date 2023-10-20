@@ -1,3 +1,4 @@
+open Hand
 open Card
 open Deck
 
@@ -14,23 +15,23 @@ open Deck
 (* module Move : Move = struct (* let deck *) (* Deck.reset *) end *)
 
 module type Game = sig
-  type 'a t
+  type t
 
-  val build : int -> 'a t
-  val play_card : 'a t -> 'b -> 'a t
-  val play_round : 'a t -> string -> 'a t
+  val build : int -> t
+  val play_card : t -> t
+  val play_round : t -> string -> t
 end
 
 module Game = struct
-  type 'a t = {
-    curr_deck : 'a Deck.t;
+  type t = {
+    curr_deck : Deck.t;
     curr_card : Card.card;
     curr_player : int;
-    hands : 'a list list;
+    hands : Card.card list list;
   }
 
   (* Check if move is valid and return true if valid or false if invalid. *)
-  let check_play : 'a t -> Card.card -> bool = failwith "unim"
+  let check_play : t -> Card.card -> bool = failwith "unim"
 
   (* Build helper function. Takes in a deck [deck] to deal from, a list of hands
      [lst], and a number of hands to deal [n]. Deals [n] hands and adds each one
@@ -44,12 +45,17 @@ module Game = struct
 
   let build n =
     let start_deck = Deck.reset () in
-    let hands, dealt_deck = deal_hands start_deck [] n in
+    let starting_hands, dealt_deck = deal_hands start_deck [] n in
     let fst_card, deck = Deck.draw dealt_deck in
-    { curr_deck = deck; curr_card = fst_card; curr_player = 0; hands }
+    {
+      curr_deck = deck;
+      curr_card = fst_card;
+      curr_player = 0;
+      hands = starting_hands;
+    }
 
-  let play_card : 'a t -> Card.card -> 'a t = failwith "unim"
-  let play_round : 'a t -> string -> 'a t = failwith "unim"
+  let play_card : t -> t = failwith "unim"
+  let play_round : t -> string -> t = failwith "unim"
 end
 
 (** robot code here to generate random card *)

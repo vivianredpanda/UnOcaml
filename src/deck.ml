@@ -6,31 +6,31 @@
 open Card
 
 module type Deck = sig
-  type 'a t
+  type t
 
-  val to_list : 'a t -> 'a list
-  val of_list : 'a list -> 'a t
-  val draw : 'a t -> 'a * 'a t
-  val deal : 'a t -> 'a t * 'a list
-  val is_empty : 'a t -> bool
-  val reset : unit -> 'a t
-  val size : 'a t -> int
+  val to_list : t -> Card.card list
+  val of_list : Card.card list -> t
+  val draw : t -> Card.card * t
+  val deal : t -> t * Card.card list
+  val is_empty : t -> bool
+  val reset : unit -> t
+  val size : t -> int
 end
 
 module Deck : Deck = struct
-  type 'a t = 'a list
+  type t = Card.card list
 
-  let to_list (deck : 'a t) = deck
-  let of_list (lst : 'a list) = lst
+  let to_list (deck : t) = deck
+  let of_list (lst : Card.card list) = lst
 
   (** Remove a card [card] from the given deck [deck]. Returns the updated deck.
       Raises Invalid_argument if card is not in the deck or [deck] is empty. *)
-  let rec remove (card : 'a) (deck : 'a t) =
+  let rec remove (card : Card.card) (deck : t) =
     match deck with
     | [] -> raise (Invalid_argument "card not in deck")
     | h :: t -> if h = card then t else remove card t
 
-  let draw (deck : 'a t) =
+  let draw (deck : t) =
     let card = List.nth deck (Random.int (List.length deck)) in
     (card, remove card deck)
 
@@ -38,20 +38,20 @@ module Deck : Deck = struct
       removes [n] cards from [deck]. Returns a pair of the updated deck and a
       list containing the removed cards and the elements of [lst]. Requires the
       size of [deck] is at least [n] and [n] >= 0. *)
-  let rec deal_helper (lst : 'a list) (deck : 'a t) (n : int) =
+  let rec deal_helper (lst : Card.card list) (deck : t) (n : int) =
     match n with
     | 0 -> (deck, lst)
     | _ ->
         let card, new_deck = draw deck in
         deal_helper (card :: lst) new_deck (n - 1)
 
-  let deal (deck : 'a t) = deal_helper [] deck 7
+  let deal (deck : t) = deal_helper [] deck 7
 
-  let is_empty (deck : 'a t) : bool =
+  let is_empty (deck : t) : bool =
     match to_list deck with
     | [] -> true
     | _ -> false
 
-  let reset () : 'a t = failwith "unim"
-  let size (deck : 'a t) = List.length deck
+  let reset () : t = failwith "unim"
+  let size (deck : t) = List.length deck
 end

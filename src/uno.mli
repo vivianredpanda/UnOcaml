@@ -16,9 +16,9 @@
 
 (** A model that keeps track of and updates the state of the game. *)
 module type Game = sig
-  type 'a t
+  type t
 
-  val build : int -> 'a t
+  val build : int -> t
   (** Create a game of Uno. - makes default state - deals out the hands and
       picks random starter card and have leftover deck. Takes in the number of
       players. *)
@@ -26,10 +26,10 @@ module type Game = sig
   (* helpers: check if move is valid (takes in latest card & attempted move)
      shuffle deck: when deck runs out *)
 
-  val play_card : 'a t -> 'b -> 'a t
+  val play_card : t -> t
   (** Progress the game based on a single move. *)
 
-  val play_round : 'a t -> string -> 'a t
+  val play_round : t -> string -> t
   (** Progress the game based on a user's move plus all the robot moves. *)
 end
 
