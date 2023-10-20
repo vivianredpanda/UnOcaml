@@ -15,6 +15,7 @@ module type Hand = sig
   val play_card : 'a -> 'a t -> 'a t
   val of_list : 'a list -> 'a t
   val to_list : 'a t -> 'a list
+  val check_valid_card : 'a -> 'a t -> bool
 end
 
 module Hand : Hand = struct
@@ -34,4 +35,5 @@ module Hand : Hand = struct
 
   let of_list (lst : 'a list) : 'a t = lst
   let to_list (h : 'a t) : 'a list = h
+  let check_valid_card = failwith "unimplemented"
 end
