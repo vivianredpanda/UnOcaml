@@ -36,12 +36,22 @@ module Game = struct
     match game.curr_card with
     | Wildcard _ | Wildcard4 _ -> true
     | Skip color | Reverse color -> Card.get_color card = color
-    | Number (num, color) | Plus (num, color) ->
+    | Number (num, color) ->
         if Card.get_color card <> color then
           match Card.get_number card with
           | Some n -> n = num
           | None -> false
-        else false
+        else true
+    | Plus (num, color) ->
+        if Card.get_color card <> color then
+          match card with
+          | Plus (num, _) -> begin
+              match Card.get_number card with
+              | Some n -> n = num
+              | None -> false
+            end
+          | _ -> false
+        else true
 
   (* Build helper function. Takes in a deck [deck] to deal from, a list of hands
      [lst], and a number of hands to deal [n]. Deals [n] hands and adds each one
