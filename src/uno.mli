@@ -22,9 +22,10 @@ module type Move = sig end
 module type Game = sig
   type 'a t
 
-  val build : unit -> 'a t
-  (** Create a game of Uno. - makes default state - deals out 4 hands and picks
-      random starter card and have leftover deck *)
+  val build : int -> 'a t
+  (** Create a game of Uno. - makes default state - deals out the hands and
+      picks random starter card and have leftover deck. Takes in the number of
+      players. *)
 
   (* helpers: check if move is valid (takes in latest card & attempted move)
      shuffle deck: when deck runs out *)
