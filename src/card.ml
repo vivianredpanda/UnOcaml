@@ -4,6 +4,7 @@ module Card = struct
     | Blue
     | Green
     | Yellow
+    | Any
 
   type card =
     | Number of int * color
@@ -12,6 +13,19 @@ module Card = struct
     | Skip of color
     | Wildcard of color
     | Wildcard4 of color
+
+  (* Returns the color of the card. *)
+  let get_color (c : card) : color =
+    match c with
+    | Reverse col | Skip col | Wildcard col | Wildcard4 col -> col
+    | Number (_, col) | Plus (_, col) -> col
+
+  (* Returns Some integer number corresponding to the card. If there does not
+     exist any number corresponding with the card, returns None *)
+  let get_number (c : card) : int option =
+    match c with
+    | Reverse _ | Skip _ | Wildcard _ | Wildcard4 _ -> None
+    | Number (num, _) | Plus (num, _) -> Some num
 
   (** Takes in a string and returns the corresponding color. *)
   let to_color (c : string) : color =

@@ -23,6 +23,7 @@ module type Game = sig
 end
 
 module Game = struct
+  (* UNIMPLEMENTED: stacking +2 or +4 *)
   type t = {
     curr_deck : Deck.t;
     curr_card : Card.card;
@@ -31,7 +32,16 @@ module Game = struct
   }
 
   (* Check if move is valid and return true if valid or false if invalid. *)
-  let check_play : t -> Card.card -> bool = failwith "unim"
+  let check_play game card =
+    match game.curr_card with
+    | Wildcard _ | Wildcard4 _ -> true
+    | Skip color | Reverse color -> Card.get_color card = color
+    | Number (num, color) | Plus (num, color) ->
+        if Card.get_color card <> color then
+          match Card.get_number card with
+          | Some n -> n = num
+          | None -> false
+        else false
 
   (* Build helper function. Takes in a deck [deck] to deal from, a list of hands
      [lst], and a number of hands to deal [n]. Deals [n] hands and adds each one
