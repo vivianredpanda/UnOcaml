@@ -66,15 +66,43 @@ module Game = struct
 
   (* Given a card, a player index, and a total number of players, returns the
      index of the next player. Requires 0 <= [player] < [n] - 1. *)
-  let next_player (card : Card.card) (player : int) (n : int) = failwith "unim"
+  let next_player (card : Card.card) (player : int) (n : int) =
+    match card with
+    | Number _ | Plus _ | Wildcard _ | Wildcard4 _ ->
+        if player = n - 1 then 0 else player + 1
+    | _ -> failwith "Non-number card functionality unimplemented"
+    | Skip _ ->
+        if player = n - 1 then 1 else if player = n - 2 then 0 else player + 2
+    | Reverse _ -> if player = 0 then n - 1 else player - 1
+  (* To-do: Add non-number card functionality to determine the next_player when
+     reverse or skip is played. *)
+
+  (* Given a game state, the index of the current player, the current player's
+     hand after playing a card, the card played, and the current_deck, return
+     the list of hands of all the players based on the card played, and the
+     updated deck. *)
+  let update_hands (game : t) (player : int) (new_hand : 'b) (card : Card.card)
+      (deck : Deck.t) =
+    match card with
+    | Number _ | Wildcard _ | Skip _ ->
+        (replace game.hands player new_hand, deck)
+    | _ -> failwith "Non-number card functionality unimplemented"
+  (* To-do: Add non-number card functionality to switch hands around when
+     reverse is played, and add cards to the next player's deck if Plus/
+     Wildcard4 is played. *)
 
   let play_card (game : t) (card : Card.card) (deck : Deck.t) =
     if check_play game card then
       let player = game.curr_player in
       let hand = Hand.play_card card (List.nth game.hands player) in
-      let hands = replace game.hands player hand in
+      let hands, new_deck = update_hands game player hand card deck in
       let next_player = next_player card player (List.length hands) in
-      { curr_deck = deck; curr_card = card; curr_player = next_player; hands }
+      {
+        curr_deck = new_deck;
+        curr_card = card;
+        curr_player = next_player;
+        hands;
+      }
     else raise (Invalid_argument "invalid move")
 
   let play_round : t -> string -> t = failwith "unim"

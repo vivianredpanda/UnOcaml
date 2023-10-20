@@ -43,7 +43,7 @@ module Card = struct
     | "Plus" -> Plus (int_of_string (List.nth lst 3), c)
     | "Skip" -> Skip c
     | "Wildcard" -> Wildcard c
-    | "Wildcard4" -> Wildcard c
+    | "Wildcard4" -> Wildcard4 c
     | num -> Number (int_of_string num, c)
 
   (** Takes in a card and returns it in string form, following the requirements
