@@ -34,6 +34,7 @@ module Card = struct
     | "Blue" -> Blue
     | "Green" -> Green
     | "Yellow" -> Yellow
+    | "Any" -> Any
     | _ -> failwith "invalid color"
 
   (** Takes in a color and returns it in string form. *)
@@ -43,6 +44,7 @@ module Card = struct
     | Blue -> "Blue"
     | Green -> "Green"
     | Yellow -> "Yellow"
+    | Any -> "Any"
 
   (** Takes in a string representation of a card, and returns a card. Requires:
       name is in the form "Color Number" (eg: Red 6), "Color Reverse", "Color
