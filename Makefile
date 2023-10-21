@@ -13,6 +13,10 @@ code:
 utop:
 	OCAMLRUNPARAM=b dune utop src
 
+# countlines:
+# 	dune clean
+# 	cloc --by-file --include-lang=OCaml . 
+
 test:
 	OCAMLRUNPARAM=b dune exec test/main.exe
 

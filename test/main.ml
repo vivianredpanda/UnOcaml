@@ -2,8 +2,12 @@ open OUnit2
 open Unocaml
 open Deck
 open Card
+open Hand
 
-let pp_pair pp_l pp_r (l, r) = Printf.sprintf "(%s, %s)" (pp_l l) (pp_r r)
+let cmp_bag_like_lists lst1 lst2 =
+  let sort1 = List.sort compare lst1 in
+  let sort2 = List.sort compare lst2 in
+  sort1 = sort2
 
 let pp_list pp_elt lst =
   let pp_elts lst =
@@ -155,7 +159,137 @@ let deck_tests =
     >:: deal_test 107 (snd (Deck.draw deck1));
   ]
 
-let hand_tests = []
+let hand1 =
+  Hand.of_list
+    [
+      reverse_card;
+      skip_card;
+      plus2_card;
+      unused_wildcard;
+      Card.to_card "Green 8";
+      number_card;
+      Card.to_card "Red 5";
+      plus2_card;
+      unused_wildcard4;
+    ]
+
+let check_valid_card_test out in1 in2 _ =
+  assert_equal ~printer:string_of_bool
+    ~msg:
+      ("function: remove\ninputs: %s %s" ^ Card.string_of_card in1
+      ^ pp_list Card.string_of_card (Hand.to_list in2))
+    out
+    (Hand.check_valid_card in1 in2)
+
+let add_card_test out in1 in2 _ =
+  assert_equal
+    ~printer:(pp_list Card.string_of_card)
+    ~msg:
+      ("function: remove\ninputs: %s %s" ^ Card.string_of_card in1
+      ^ pp_list Card.string_of_card (Hand.to_list in2))
+    out
+    (Hand.add_card in1 in2 |> Hand.to_list)
+
+let play_card_test out in1 in2 _ =
+  assert_equal ~cmp:cmp_bag_like_lists
+    ~printer:(pp_list Card.string_of_card)
+    ~msg:
+      ("function: remove\ninputs: %s %s" ^ Card.string_of_card in1
+      ^ pp_list Card.string_of_card (Hand.to_list in2))
+    out
+    (Hand.play_card in1 in2 |> Hand.to_list)
+
+let play_card_invalid_arg_test in1 in2 _ =
+  let exn = Invalid_argument "..." in
+  assert_raises
+    ~msg:
+      ("function: remove\ninput: %s %s" ^ Card.string_of_card in1
+      ^ pp_list Card.string_of_card (Hand.to_list in2))
+    exn
+    (fun () ->
+      try Hand.play_card in1 in2 with Invalid_argument _ -> raise exn)
+
+let hand_tests =
+  [
+    "check_valid_card for existing card in the deck"
+    >:: check_valid_card_test true plus2_card hand1;
+    "check_valid_card for similar non-existing card in the deck"
+    >:: check_valid_card_test false (Card.to_card "Red Plus 2") hand1;
+    "check_valid_card for used wildcard vs unused wildcard"
+    >:: check_valid_card_test false (Card.to_card "Blue Wildcard") hand1;
+    "add_card random number card"
+    >:: add_card_test
+          [
+            Card.to_card "Yellow 0";
+            reverse_card;
+            skip_card;
+            plus2_card;
+            unused_wildcard;
+            Card.to_card "Green 8";
+            number_card;
+            Card.to_card "Red 5";
+            plus2_card;
+            unused_wildcard4;
+          ]
+          (Card.to_card "Yellow 0") hand1;
+    "add_card already existing card"
+    >:: add_card_test
+          [
+            reverse_card;
+            reverse_card;
+            skip_card;
+            plus2_card;
+            unused_wildcard;
+            Card.to_card "Green 8";
+            number_card;
+            Card.to_card "Red 5";
+            plus2_card;
+            unused_wildcard4;
+          ]
+          reverse_card hand1;
+    "play_card first card in list"
+    >:: play_card_test
+          [
+            skip_card;
+            plus2_card;
+            unused_wildcard;
+            Card.to_card "Green 8";
+            number_card;
+            Card.to_card "Red 5";
+            plus2_card;
+            unused_wildcard4;
+          ]
+          reverse_card hand1;
+    "play_card last card in list"
+    >:: play_card_test
+          [
+            reverse_card;
+            skip_card;
+            plus2_card;
+            unused_wildcard;
+            Card.to_card "Green 8";
+            number_card;
+            Card.to_card "Red 5";
+            plus2_card;
+          ]
+          unused_wildcard4 hand1;
+    "play_card multiple same card in list"
+    >:: play_card_test
+          [
+            reverse_card;
+            skip_card;
+            unused_wildcard;
+            Card.to_card "Green 8";
+            number_card;
+            Card.to_card "Red 5";
+            plus2_card;
+            unused_wildcard4;
+          ]
+          plus2_card hand1;
+    "play_card non-existing card in list"
+    >:: play_card_invalid_arg_test (Card.to_card "Green Skip") hand1;
+  ]
+
 let uno_tests = []
 
 let tests =
