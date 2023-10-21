@@ -35,5 +35,5 @@ module Hand : Hand = struct
 
   let of_list (lst : Card.card list) : t = lst
   let to_list (h : t) : Card.card list = h
-  let check_valid_card = failwith "unimplemented"
+  let check_valid_card (c : Card.card) (h : t) = List.exists (fun x -> x = c) h
 end
