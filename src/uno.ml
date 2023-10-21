@@ -111,19 +111,42 @@ module Game = struct
      Wildcard4 is played. *)
 
   let play_card (game : t) (card : Card.card) (new_hand : Hand.t) =
-    if check_play game card then
-      let player = game.curr_player in
-      let hands, new_deck = update_hands game player new_hand card in
-      let next_player = next_player card player (List.length hands) in
-      {
-        curr_deck = new_deck;
-        curr_card = card;
-        curr_player = next_player;
-        hands;
-      }
-    else raise (Invalid_argument "invalid move")
+    let player = game.curr_player in
+    let hands, new_deck = update_hands game player new_hand card in
+    let next_player = next_player card player (List.length hands) in
+    { curr_deck = new_deck; curr_card = card; curr_player = next_player; hands }
 
-  let play_round : t -> string -> t = failwith "unim"
+  let rec robot_turn (game : t) (player : int) (human_player : int) : t =
+    if player = human_player then game
+    else
+      let curr_hand_lst = Hand.to_list (List.nth game.hands player) in
+      let valid_cards =
+        List.filter (fun c -> check_play game c) curr_hand_lst
+      in
+      let next_card =
+        List.nth valid_cards (Random.int (List.length valid_cards))
+      in
+      let next_state =
+        play_card game next_card
+          (Hand.play_card next_card (List.nth game.hands human_player))
+      in
+      robot_turn next_state game.curr_player human_player
+  (* failwith "" *)
+
+  let play_round (game : t) (card_input : string) : t =
+    let human_player = game.curr_player in
+    let card = Card.to_card card_input in
+    if check_play game card then
+      let new_hand = Hand.play_card card (List.nth game.hands human_player) in
+      if Hand.to_list new_hand = [] then failwith "unimplemented"
+        (* TODO: functionality for what to do when user won -> played last
+           card *)
+      else if List.length (Hand.to_list new_hand) = 1 then failwith "at uno"
+        (* TODO: decide implementation for when user has one card left *)
+      else
+        let post_player_turn = play_card game card new_hand in
+        robot_turn post_player_turn game.curr_player human_player
+    else raise (Invalid_argument "invalid move")
 end
 
 (** robot code here to generate random card *)
