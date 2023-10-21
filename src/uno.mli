@@ -37,8 +37,8 @@ module type Game = sig
       {a, b, c}, card to play is {b}, so input hand must be {a, c}. Raises 
       Invalid_argument if the card to play is not valid by the rules of Uno. *)
 
-  val play_round : t -> string -> t
-  (** Progress the game based on a user's move plus all the robot moves. *)
+  val handle_play : t -> bool -> ?card_input:string -> t
+  (** Progress the game based on a user's move. *)
 end
 
 (* module Move : Move *)

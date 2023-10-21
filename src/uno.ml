@@ -19,7 +19,7 @@ module type Game = sig
 
   val build : int -> t
   val play_card : t -> Card.card -> Hand.t -> t
-  val play_round : t -> string -> t
+  val handle_play : t -> bool -> ?card_input:string -> t
 end
 
 module Game = struct
@@ -116,37 +116,33 @@ module Game = struct
     let next_player = next_player card player (List.length hands) in
     { curr_deck = new_deck; curr_card = card; curr_player = next_player; hands }
 
-  let rec robot_turn (game : t) (player : int) (human_player : int) : t =
-    if player = human_player then game
-    else
-      let curr_hand_lst = Hand.to_list (List.nth game.hands player) in
-      let valid_cards =
-        List.filter (fun c -> check_play game c) curr_hand_lst
-      in
-      let next_card =
-        List.nth valid_cards (Random.int (List.length valid_cards))
-      in
-      let next_state =
-        play_card game next_card
-          (Hand.play_card next_card (List.nth game.hands human_player))
-      in
-      robot_turn next_state game.curr_player human_player
+  let robot_turn (game : t) (player : int) : t =
+    let curr_hand_lst = Hand.to_list (List.nth game.hands player) in
+    let valid_cards = List.filter (fun c -> check_play game c) curr_hand_lst in
+    let next_card =
+      List.nth valid_cards (Random.int (List.length valid_cards))
+    in
+    play_card game next_card
+      (Hand.play_card next_card (List.nth game.hands player))
   (* failwith "" *)
 
-  let play_round (game : t) (card_input : string) : t =
-    let human_player = game.curr_player in
-    let card = Card.to_card card_input in
-    if check_play game card then
-      let new_hand = Hand.play_card card (List.nth game.hands human_player) in
-      if Hand.to_list new_hand = [] then failwith "unimplemented"
-        (* TODO: functionality for what to do when user won -> played last
-           card *)
-      else if List.length (Hand.to_list new_hand) = 1 then failwith "at uno"
-        (* TODO: decide implementation for when user has one card left *)
+  let handle_play (game : t) (is_human : bool) ?(card_input = "") : t =
+    if is_human then
+      if card_input = "" then raise (Invalid_argument "invalid card input")
       else
-        let post_player_turn = play_card game card new_hand in
-        robot_turn post_player_turn game.curr_player human_player
-    else raise (Invalid_argument "invalid move")
+        let card = Card.to_card card_input in
+        if check_play game card then
+          let new_hand =
+            Hand.play_card card (List.nth game.hands game.curr_player)
+          in
+          if Hand.to_list new_hand = [] then failwith "unimplemented"
+            (* TODO: functionality for what to do when user won -> played last
+               card *)
+          else if List.length (Hand.to_list new_hand) = 1 then failwith "at uno"
+            (* TODO: decide implementation for when user has one card left *)
+          else play_card game card new_hand
+        else raise (Invalid_argument "invalid move")
+    else robot_turn game game.curr_player
 end
 
 (** robot code here to generate random card *)
