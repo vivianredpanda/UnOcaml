@@ -4,35 +4,19 @@ open Deck
 
 (* game file *)
 
-(** 1. GAME PRINTING STUFF HERE 2. MAKE DEFAULT DECK - (RANDOMLY GRAB FROM DECK)
-    OF 108 CARDS a. make reset function in deck & call that for a deck starter
-    variable 3. deck draws 7 cards from the deck (list of cards) and that calls
-    of_list to make a new hand 4. print instructions to begin play a. for each
-    play: display the last played card (if no card, then draw a random card from
-    the deck then user gets prompted to choose a card from their deck user gives
-    input and we verify the input (print more stuff) *)
-
-(* module Move : Move = struct (* let deck *) (* Deck.reset *) end *)
-
 module type Game = sig
   type t
 
-  val build : int -> t
-  val play_card : t -> Card.card -> Hand.t -> t
-  val handle_play : t -> bool -> string -> t
-
-  (* val handle_play : t -> bool -> ?card_input:string -> t *)
   val get_deck : t -> Deck.t
   val get_curr_card : t -> Card.card
   val get_curr_player : t -> int
   val get_hand : t -> int -> Hand.t
-  val robot_turn : t -> int -> t
-
-  (* val get_top_card : t -> Card.card *)
-  (* val get_curr_deck : t -> Deck.t *)
-
-  (* val get_curr_player : t -> int *)
   val hands_to_list : t -> Card.card list list
+  val check_play : t -> Card.card -> bool
+  val build : int -> t
+  val play_card : t -> Card.card -> Hand.t -> t
+  val handle_play : t -> bool -> string -> t
+  val robot_turn : t -> int -> t
 end
 
 module Game = struct
@@ -44,14 +28,14 @@ module Game = struct
     hands : Hand.t list;
   }
 
-  (* let get_deck deckie : Deck.t = deckie.curr_deck *)
-  let get_curr_card deckie : Card.card = deckie.curr_card
-  let get_curr_player deckie : int = deckie.curr_player
+  let get_deck (game : t) : Deck.t = game.curr_deck
+  let get_curr_card (game : t) : Card.card = game.curr_card
+  let get_curr_player (game : t) : int = game.curr_player
 
   (* todo: make this work for any n because game can have any number of players
      and doesnt have to be 4 player *)
-  let get_hand deckie player_num : Hand.t =
-    let hands = deckie.hands in
+  let get_hand (game : t) (player_num : int) : Hand.t =
+    let hands = game.hands in
     match player_num with
     | 0 -> List.nth hands 0
     | 1 -> List.nth hands 1
@@ -59,8 +43,15 @@ module Game = struct
     | 3 -> List.nth hands 3
     | _ -> failwith "invalid player number"
 
-  (* Check if move is valid and return true if valid or false if invalid. *)
-  let check_play game card =
+  let hands_to_list (game : t) : Card.card list list =
+    let rec to_list_list hands =
+      match hands with
+      | [] -> []
+      | hand :: t -> Hand.to_list hand :: to_list_list t
+    in
+    to_list_list game.hands
+
+  let check_play (game : t) (card : Card.card) : bool =
     match game.curr_card with
     | Wildcard _ | Wildcard4 _ -> true
     | Skip color | Reverse color -> Card.get_color card = color
@@ -166,27 +157,13 @@ module Game = struct
           in
           if Hand.to_list new_hand = [] then failwith "unimplemented"
             (* TODO: functionality for what to do when user won -> played last
-               card *)
+               card - maybe add some field in t (ifWon?) to indicate curr_player
+               has won*)
           else if List.length (Hand.to_list new_hand) = 1 then failwith "at uno"
-            (* TODO: decide implementation for when user has one card left *)
+            (* TODO: decide implementation for when user has one card left,
+               maybe field in t (arr of those with one card) to indicate which
+               players have uno? *)
           else play_card game card new_hand
         else raise (Invalid_argument "invalid move")
     else robot_turn game game.curr_player
-
-  let get_top_card (game : t) : Card.card = game.curr_card
-  let get_deck deckie : Deck.t = deckie.curr_deck
-
-  (* let get_curr_deck (game : t) : Deck.t = game.curr_deck *)
-  let get_curr_player (game : t) : int = game.curr_player
-
-  let hands_to_list (game : t) : Card.card list list =
-    let rec to_list_list hands =
-      match hands with
-      | [] -> []
-      | hand :: t -> Hand.to_list hand :: to_list_list t
-    in
-    to_list_list game.hands
 end
-
-(** robot code here to generate random card *)
-(* store list of last seen cards here - to reference last played card *)
