@@ -117,9 +117,9 @@ module Game = struct
     | Number _ | Plus _ | Wildcard _ | Wildcard4 _ ->
         if player = n - 1 then 0 else player + 1
     | _ -> failwith "Non-number card functionality unimplemented"
-    | Skip _ ->
-        if player = n - 1 then 1 else if player = n - 2 then 0 else player + 2
-    | Reverse _ -> if player = 0 then n - 1 else player - 1
+
+  (* | Skip _ -> if player = n - 1 then 1 else if player = n - 2 then 0 else
+     player + 2 | Reverse _ -> if player = 0 then n - 1 else player - 1 *)
   (* To-do: Add non-number card functionality to determine the next_player when
      reverse or skip is played. *)
 
