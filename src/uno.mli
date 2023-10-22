@@ -40,7 +40,7 @@ module type Game = sig
   val handle_play : t -> bool -> string -> t
   (** Progress the game based on a user's move. *)
 
-  (* val get_deck : t -> Deck.t *)
+  val get_deck : t -> Deck.t
   (** Return current deck. *)
   val get_curr_card : t -> Card.card
   (** Return current card. *)
@@ -51,7 +51,7 @@ module type Game = sig
   (* val get_top_card : t -> Card.card *)
   (** Returns the last played card for a game state. *)
 
-  val get_curr_deck : t -> Deck.t
+  (* val get_curr_deck : t -> Deck.t *)
   (** Returns the current Deck of a game state. *)
 
   (* val get_curr_player : t -> int *)

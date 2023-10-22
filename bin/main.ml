@@ -73,7 +73,7 @@ let () =
         let game_state =
           Game.handle_play game_state
             (Game.get_curr_player game_state = 0)
-            ~card_input:user_in
+            user_in
         in
         game_state
         (* print_endline "Your cards : "; *)

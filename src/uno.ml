@@ -19,17 +19,17 @@ module type Game = sig
 
   val build : int -> t
   val play_card : t -> Card.card -> Hand.t -> t
-  val handle_play : t -> bool -> ?card_input:string -> t
+  val handle_play : t -> bool -> string -> t
 
-  (* val get_deck : t -> Deck.t *)
+  (* val handle_play : t -> bool -> ?card_input:string -> t *)
+  val get_deck : t -> Deck.t
   val get_curr_card : t -> Card.card
   val get_curr_player : t -> int
   val get_hand : t -> int -> Hand.t
   val robot_turn : t -> int -> t
-  val handle_play : t -> bool -> string -> t
 
   (* val get_top_card : t -> Card.card *)
-  val get_curr_deck : t -> Deck.t
+  (* val get_curr_deck : t -> Deck.t *)
 
   (* val get_curr_player : t -> int *)
   val hands_to_list : t -> Card.card list list
@@ -44,7 +44,7 @@ module Game = struct
     hands : Hand.t list;
   }
 
-  let get_deck deckie : Deck.t = deckie.curr_deck
+  (* let get_deck deckie : Deck.t = deckie.curr_deck *)
   let get_curr_card deckie : Card.card = deckie.curr_card
   let get_curr_player deckie : int = deckie.curr_player
 
@@ -172,7 +172,9 @@ module Game = struct
     else robot_turn game game.curr_player
 
   let get_top_card (game : t) : Card.card = game.curr_card
-  let get_curr_deck (game : t) : Deck.t = game.curr_deck
+  let get_deck deckie : Deck.t = deckie.curr_deck
+
+  (* let get_curr_deck (game : t) : Deck.t = game.curr_deck *)
   let get_curr_player (game : t) : int = game.curr_player
 
   let hands_to_list (game : t) : Card.card list list =
