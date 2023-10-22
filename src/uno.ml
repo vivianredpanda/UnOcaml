@@ -48,6 +48,8 @@ module Game = struct
   let get_curr_card deckie : Card.card = deckie.curr_card
   let get_curr_player deckie : int = deckie.curr_player
 
+  (* todo: make this work for any n because game can have any number of players
+     and doesnt have to be 4 player *)
   let get_hand deckie player_num : Hand.t =
     let hands = deckie.hands in
     match player_num with

@@ -47,6 +47,7 @@ module type Game = sig
   val get_curr_player : t -> int
   (** Return current player. *)
   val get_hand : t -> int -> Hand.t
+  (** Return the current hand of a given player. *)
   val robot_turn : t -> int -> t
   (* val get_top_card : t -> Card.card *)
   (** Returns the last played card for a game state. *)

@@ -3,6 +3,7 @@ open Unocaml
 open Deck
 open Card
 open Hand
+open Uno
 
 let cmp_bag_like_lists lst1 lst2 =
   let sort1 = List.sort compare lst1 in
@@ -23,6 +24,7 @@ let pp_list pp_elt lst =
   Printf.sprintf "[%s]" (pp_elts lst)
 
 let pp_string s = "\"" ^ s ^ "\""
+let pp_card c = pp_string (Card.string_of_card c)
 let unused_wildcard = Card.to_card "Any Wildcard"
 let used_wildcard = Card.to_card "Blue Wildcard"
 let unused_wildcard4 = Card.to_card "Any Wildcard4"
@@ -323,7 +325,31 @@ let hand_tests =
     >:: play_card_invalid_arg_test (Card.to_card "Green Skip") hand1;
   ]
 
-let uno_tests = []
+let build_deck_test name out n =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_int out
+    (Game.build n |> Game.get_deck |> Deck.size)
+
+let build_player_test name out n =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_int out (Game.build n |> Game.get_curr_player)
+
+let build_hands_test name out n =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_int out
+    (Game.build n |> Game.hands_to_list |> List.length)
+
+let uno_tests =
+  [
+    build_deck_test "build 4 removes 4*7 + 1 cards from starter deck" 79 4;
+    build_deck_test "build 2 removes 2*7 + 1 cards from starter deck" 93 2;
+    build_deck_test "build 0 removes 0 + 1 cards from starter deck" 107 0;
+    build_player_test "build 0 defaults to player 0 as starting player" 0 0;
+    build_player_test "build 2 defaults to player 0 as starting player" 0 2;
+    build_hands_test "build 0 creates 0 hands" 0 0;
+    build_hands_test "build 1 creates 1 hand" 1 1;
+    build_hands_test "build 3 creates 3 hands" 3 3;
+  ]
 
 let tests =
   "unocaml test suite"
