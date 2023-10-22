@@ -95,6 +95,18 @@ let deck2 = Deck.reset ()
 let deck3 = Deck.of_list [ number_card ]
 let deck4 = Deck.of_list [ number_card; number_card; number_card; number_card ]
 
+let deck5 =
+  Deck.of_list
+    [
+      number_card;
+      Card.to_card "Red 6";
+      Card.to_card "Yellow 7";
+      Card.to_card "Blue 8";
+      Card.to_card "Green 9";
+      Card.to_card "Red 4";
+      Card.to_card "Yellow 3";
+    ]
+
 let remove_test out in1 in2 _ =
   assert_equal
     ~printer:(pp_list Card.string_of_card)
@@ -339,6 +351,15 @@ let build_hands_test name out n =
   assert_equal ~printer:string_of_int out
     (Game.build n |> Game.hands_to_list |> List.length)
 
+let play_card_test name out n f1 f2 f3 =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_int out
+    ((let game = Game.build n in
+      let hand = Game.get_hand game 0 in
+      let card, new_hand = Deck.draw (hand |> Hand.to_list |> Deck.of_list) in
+      Game.play_card game card (new_hand |> Deck.to_list |> Hand.of_list))
+    |> f1 |> f2 |> f3)
+
 let uno_tests =
   [
     build_deck_test "build 4 removes 4*7 + 1 cards from starter deck" 79 4;
@@ -349,6 +370,11 @@ let uno_tests =
     build_hands_test "build 0 creates 0 hands" 0 0;
     build_hands_test "build 1 creates 1 hand" 1 1;
     build_hands_test "build 3 creates 3 hands" 3 3;
+    (* todo: test play_card once non-number card functionality is implemented
+       play_card_test "play_card increment player index by 1" 1 4
+       Game.get_curr_player (( + ) 0) (( + ) 0); play_card_test "play_card
+       remove 1 card from player 0 hand" 6 4 Game.hands_to_list List.hd
+       List.length; *)
   ]
 
 let tests =
