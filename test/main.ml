@@ -22,6 +22,7 @@ let pp_list pp_elt lst =
   in
   Printf.sprintf "[%s]" (pp_elts lst)
 
+let pp_string s = "\"" ^ s ^ "\""
 let unused_wildcard = Card.to_card "Any Wildcard"
 let used_wildcard = Card.to_card "Blue Wildcard"
 let unused_wildcard4 = Card.to_card "Any Wildcard4"
@@ -88,6 +89,10 @@ let deck1 =
       unused_wildcard4;
     ]
 
+let deck2 = Deck.reset ()
+let deck3 = Deck.of_list [ number_card ]
+let deck4 = Deck.of_list [ number_card; number_card; number_card; number_card ]
+
 let remove_test out in1 in2 _ =
   assert_equal
     ~printer:(pp_list Card.string_of_card)
@@ -106,8 +111,6 @@ let remove_invalid_arg_test in1 in2 _ =
     exn
     (fun () -> try Deck.remove in1 in2 with Invalid_argument _ -> raise exn)
 
-let deck2 = Deck.reset ()
-
 let deal_test out in1 _ =
   assert_equal ~printer:string_of_int
     ~msg:
@@ -115,6 +118,22 @@ let deal_test out in1 _ =
       ^ pp_list Card.string_of_card (Deck.to_list in1))
     out
     (Deck.deal in1 |> fst |> Deck.to_list |> List.length)
+
+let int_test name out in1 =
+  name >:: fun _ -> assert_equal ~printer:string_of_int out in1
+
+let draw_test name out deck =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_int out (Deck.size (snd (Deck.draw deck)))
+
+let draw_n_deck_test name out deck n =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_int out (Deck.size (fst (Deck.draw_n deck n)))
+
+let draw_n_hand_test name out deck n =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_int out
+    (List.length (snd (Deck.draw_n deck n)))
 
 let deck_tests =
   [
@@ -157,6 +176,20 @@ let deck_tests =
     "deal cards from small deck" >:: deal_test 0 deck1;
     "deal cards from deck size less than 7"
     >:: deal_test 107 (snd (Deck.draw deck1));
+    int_test "draw card from deck of one card" 5
+      (option_value (Card.get_number (fst (Deck.draw deck3))));
+    draw_test "return deck after drawing from deck of one card" 0 deck3;
+    draw_test "draw from full deck" 107 deck2;
+    draw_n_deck_test "return deck after drawing 0 cards" 108 deck2 0;
+    draw_n_hand_test "return list of cards after drawing 0 cards" 0 deck2 0;
+    draw_n_deck_test "return deck after drawing from small deck" 0 deck4 4;
+    draw_n_hand_test "return list of cards after drawing from small deck" 4
+      deck4 4;
+    draw_n_deck_test "return deck after drawing from full deck" 98 deck2 10;
+    draw_n_hand_test "return list of cards after drawing from full deck" 10
+      deck2 10;
+    int_test "draw_n draw one card from deck" 5
+      (option_value (Card.get_number (List.hd (snd (Deck.draw_n deck4 1)))));
   ]
 
 let hand1 =

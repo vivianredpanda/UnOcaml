@@ -28,7 +28,7 @@ module type Deck = sig
 
   val deal : t -> t * Card.Card.card list
   (** Draws 7 cards from the deck. Returns the new deck and a list of 7 cards.
-      Requires the deck contains at least 7 cards. *)
+      Resets the deck and continues dealing if input deck has less than 7 cards. *)
 
   val is_empty : t -> bool
   (** Returns whether or not the deck is empty. *)
