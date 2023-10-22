@@ -80,6 +80,7 @@ module Deck : Deck = struct
     | h :: t -> if h = card then t else h :: remove card t
 
   let draw (deck : t) =
+    Random.self_init ();
     let card = List.nth deck (Random.int (List.length deck)) in
     (card, remove card deck)
 

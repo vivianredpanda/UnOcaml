@@ -20,6 +20,11 @@ module type Game = sig
   val build : int -> t
   val play_card : t -> Card.card -> Hand.t -> t
   val handle_play : t -> bool -> ?card_input:string -> t
+  val get_deck : t -> Deck.t
+  val get_curr_card : t -> Card.card
+  val get_curr_player : t -> int
+  val get_hand : t -> int -> Hand.t
+  val robot_turn : t -> int -> t
 end
 
 module Game = struct
@@ -30,6 +35,19 @@ module Game = struct
     curr_player : int;
     hands : Hand.t list;
   }
+
+  let get_deck deckie : Deck.t = deckie.curr_deck
+  let get_curr_card deckie : Card.card = deckie.curr_card
+  let get_curr_player deckie : int = deckie.curr_player
+
+  let get_hand deckie player_num : Hand.t =
+    let hands = deckie.hands in
+    match player_num with
+    | 0 -> List.nth hands 0
+    | 1 -> List.nth hands 1
+    | 2 -> List.nth hands 2
+    | 3 -> List.nth hands 3
+    | _ -> failwith "invalid player number"
 
   (* Check if move is valid and return true if valid or false if invalid. *)
   let check_play game card =

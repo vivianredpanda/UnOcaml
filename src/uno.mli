@@ -39,6 +39,15 @@ module type Game = sig
 
   val handle_play : t -> bool -> ?card_input:string -> t
   (** Progress the game based on a user's move. *)
+
+  val get_deck : t -> Deck.t
+  (** Return current deck. *)
+  val get_curr_card : t -> Card.card
+  (** Return current card. *)
+  val get_curr_player : t -> int
+  (** Return current player. *)
+  val get_hand : t -> int -> Hand.t
+  val robot_turn : t -> int -> t
 end
 
 (* module Move : Move *)
