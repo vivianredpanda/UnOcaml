@@ -37,10 +37,10 @@ module type Game = sig
       {a, b, c}, card to play is {b}, so input hand must be {a, c}. Raises 
       Invalid_argument if the card to play is not valid by the rules of Uno. *)
 
-  val handle_play : t -> bool -> ?card_input:string -> t
+  val handle_play : t -> bool -> string -> t
   (** Progress the game based on a user's move. *)
 
-  val get_deck : t -> Deck.t
+  (* val get_deck : t -> Deck.t *)
   (** Return current deck. *)
   val get_curr_card : t -> Card.card
   (** Return current card. *)
@@ -48,6 +48,18 @@ module type Game = sig
   (** Return current player. *)
   val get_hand : t -> int -> Hand.t
   val robot_turn : t -> int -> t
+  (* val get_top_card : t -> Card.card *)
+  (** Returns the last played card for a game state. *)
+
+  val get_curr_deck : t -> Deck.t
+  (** Returns the current Deck of a game state. *)
+
+  (* val get_curr_player : t -> int *)
+  (** Returns the index of the current player of a game state. *)
+
+  val hands_to_list : t -> Card.card list list
+  (** Given a current game state, returns all the players' hands in the form of
+      a list of card lists. *)
 end
 
 (* module Move : Move *)
