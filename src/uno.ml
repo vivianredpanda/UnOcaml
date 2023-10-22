@@ -19,7 +19,11 @@ module type Game = sig
 
   val build : int -> t
   val play_card : t -> Card.card -> Hand.t -> t
-  val handle_play : t -> bool -> ?card_input:string -> t
+  val handle_play : t -> bool -> string -> t
+  val get_top_card : t -> Card.card
+  val get_curr_deck : t -> Deck.t
+  val get_curr_player : t -> int
+  val hands_to_list : t -> Card.card list list
 end
 
 module Game = struct
@@ -116,6 +120,8 @@ module Game = struct
     let next_player = next_player card player (List.length hands) in
     { curr_deck = new_deck; curr_card = card; curr_player = next_player; hands }
 
+  (* For a robot's turn, plays a robot card by drawing a random card from their
+     hand and playing it *)
   let robot_turn (game : t) (player : int) : t =
     let curr_hand_lst = Hand.to_list (List.nth game.hands player) in
     let valid_cards = List.filter (fun c -> check_play game c) curr_hand_lst in
@@ -124,9 +130,8 @@ module Game = struct
     in
     play_card game next_card
       (Hand.play_card next_card (List.nth game.hands player))
-  (* failwith "" *)
 
-  let handle_play (game : t) (is_human : bool) ?(card_input = "") : t =
+  let handle_play (game : t) (is_human : bool) (card_input : string) : t =
     if is_human then
       if card_input = "" then raise (Invalid_argument "invalid card input")
       else
@@ -143,6 +148,18 @@ module Game = struct
           else play_card game card new_hand
         else raise (Invalid_argument "invalid move")
     else robot_turn game game.curr_player
+
+  let get_top_card (game : t) : Card.card = game.curr_card
+  let get_curr_deck (game : t) : Deck.t = game.curr_deck
+  let get_curr_player (game : t) : int = game.curr_player
+
+  let hands_to_list (game : t) : Card.card list list =
+    let rec to_list_list hands =
+      match hands with
+      | [] -> []
+      | hand :: t -> Hand.to_list hand :: to_list_list t
+    in
+    to_list_list game.hands
 end
 
 (** robot code here to generate random card *)
