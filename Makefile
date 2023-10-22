@@ -20,6 +20,13 @@ utop:
 # 	dune clean
 # 	cloc --by-file --include-lang=OCaml . 
 
+zip:
+	rm -f unocaml.zip
+	zip -r unocaml.zip . 
+
+unzip:
+	rm -f unocaml.zip
+
 test:
 	OCAMLRUNPARAM=b dune exec test/main.exe
 
