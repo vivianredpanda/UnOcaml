@@ -52,20 +52,20 @@ module Game = struct
     to_list_list game.hands
 
   let check_play (game : t) (card : Card.card) : bool =
-    match game.curr_card with
+    match card with
     | Wildcard _ | Wildcard4 _ -> true
-    | Skip color | Reverse color -> Card.get_color card = color
+    | Skip color | Reverse color -> Card.get_color game.curr_card = color
     | Number (num, color) ->
-        if Card.get_color card <> color then
-          match Card.get_number card with
+        if Card.get_color game.curr_card <> color then
+          match Card.get_number game.curr_card with
           | Some n -> n = num
           | None -> false
         else true
     | Plus (num, color) ->
-        if Card.get_color card <> color then
-          match card with
+        if Card.get_color game.curr_card <> color then
+          match game.curr_card with
           | Plus (num, _) -> begin
-              match Card.get_number card with
+              match Card.get_number game.curr_card with
               | Some n -> n = num
               | None -> false
             end
