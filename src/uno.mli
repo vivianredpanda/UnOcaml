@@ -1,17 +1,3 @@
-(* future issue to ponder: how to do reverse, skip, add card etc -> bc something
-   to figure out is how to store other players' stuff *)
-(* note: for now will be the same ish as game because it is one-player only *)
-
-(* module type Move = sig end *)
-
-(* Each move is defined by card * hand * deck which is the card which was
-   played, the new hand fo the players after that card was played, and*the new
-   deck - if cards were drawn from it.) type t
-
-   val update_game : t -> string -> t
-
-   end*)
-
 open Hand
 (** A model that can progress the game based on a single move. *)
 
@@ -22,13 +8,29 @@ open Deck
 module type Game = sig
   type t
 
+  val get_deck : t -> Deck.t
+  (** Return current deck. *)
+
+  val get_curr_card : t -> Card.card
+  (** Return current card. *)
+
+  val get_curr_player : t -> int
+  (** Return current player. *)
+
+  val get_hand : t -> int -> Hand.t
+  (** Return hand of a certain indexed player. *)
+
+  val hands_to_list : t -> Card.card list list
+  (** Given a current game state, returns all the players' hands in the form of
+      a list of card lists. *)
+
+  val check_play : t -> Card.card -> bool
+  (** Check if move is valid and return true if valid or false if invalid. *)
+
   val build : int -> t
   (** Create a game of Uno. - makes default state - deals out the hands and
       picks random starter card and have leftover deck. Takes in the number of
       players. *)
-
-  (* helpers: check if move is valid (takes in latest card & attempted move)
-     shuffle deck: when deck runs out *)
 
   val play_card : t -> Card.card -> Hand.t -> t
   (** Progress the game based on a card to play. Takes in the hand where the
@@ -40,32 +42,9 @@ module type Game = sig
   val handle_play : t -> bool -> string -> t
   (** Progress the game based on a user's move. *)
 
-  val get_deck : t -> Deck.t
-  (** Return current deck. *)
-  val get_curr_card : t -> Card.card
-  (** Return current card. *)
-  val get_curr_player : t -> int
-  (** Return current player. *)
-  val get_hand : t -> int -> Hand.t
-  (** Return the current hand of a given player. *)
   val robot_turn : t -> int -> t
-  (* val get_top_card : t -> Card.card *)
-  (** Returns the last played card for a game state. *)
-
-  (* val get_curr_deck : t -> Deck.t *)
-  (** Returns the current Deck of a game state. *)
-
-  (* val get_curr_player : t -> int *)
-  (** Returns the index of the current player of a game state. *)
-
-  val hands_to_list : t -> Card.card list list
-  (** Given a current game state, returns all the players' hands in the form of
-      a list of card lists. *)
+  (** Given a current game state and the index of the current (robot) player,
+      plays a robot's move. *)
 end
 
-(* module Move : Move *)
 module Game : Game
-
-(** round type : ?? function to takes in user input and call other functions to
-    play the move function called to check card - in game module : use as input
-    the previous card played *)
