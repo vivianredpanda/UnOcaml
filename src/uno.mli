@@ -20,6 +20,9 @@ module type Game = sig
   val get_hand : t -> int -> Hand.t
   (** Return hand of a certain indexed player. *)
 
+  val get_human_index : t -> int
+  (** Return the index of the human player within the list of hands *)
+
   val hands_to_list : t -> Card.card list list
   (** Given a current game state, returns all the players' hands in the form of
       a list of card lists. *)

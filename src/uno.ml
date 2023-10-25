@@ -11,6 +11,7 @@ module type Game = sig
   val get_curr_card : t -> Card.card
   val get_curr_player : t -> int
   val get_hand : t -> int -> Hand.t
+  val get_human_index : t -> int
   val hands_to_list : t -> Card.card list list
   val check_play : t -> Card.card -> bool
   val build : int -> t
@@ -26,11 +27,13 @@ module Game = struct
     curr_card : Card.card;
     curr_player : int;
     hands : Hand.t list;
+    human_index : int;
   }
 
   let get_deck (game : t) : Deck.t = game.curr_deck
   let get_curr_card (game : t) : Card.card = game.curr_card
   let get_curr_player (game : t) : int = game.curr_player
+  let get_human_index (game : t) : int = game.human_index
 
   (* todo: make this work for any n because game can have any number of players
      and doesnt have to be 4 player *)
@@ -91,7 +94,14 @@ module Game = struct
       curr_card = fst_card;
       curr_player = 0;
       hands = starting_hands;
+      human_index = 0;
     }
+
+  (* Checks if the given card is a Reverse card *)
+  let check_reverse (card : Card.card) =
+    match card with
+    | Reverse _ -> true
+    | _ -> false
 
   (* Given a list [hands], an index of that list [player], and an element
      [new_hand] to add at that index, replaces the previous element at the index
@@ -107,12 +117,11 @@ module Game = struct
      index of the next player. Requires 0 <= [player] < [n] - 1. *)
   let next_player (card : Card.card) (player : int) (n : int) =
     match card with
-    | Number _ | Plus _ | Wildcard _ | Wildcard4 _ ->
+    | Number _ | Plus _ | Wildcard _ | Wildcard4 _ | Reverse _ ->
         if player = n - 1 then 0 else player + 1
-    | _ -> failwith "Non-number card functionality unimplemented"
+    | Skip _ ->
+        if player = n - 1 then 1 else if player = n - 2 then 0 else player + 2
 
-  (* | Skip _ -> if player = n - 1 then 1 else if player = n - 2 then 0 else
-     player + 2 | Reverse _ -> if player = 0 then n - 1 else player - 1 *)
   (* To-do: Add non-number card functionality to determine the next_player when
      reverse or skip is played. *)
 
@@ -122,7 +131,7 @@ module Game = struct
   let update_hands (game : t) (player : int) (new_hand : 'b) (card : Card.card)
       =
     match card with
-    | Number _ | Wildcard _ | Skip _ ->
+    | Number _ | Wildcard _ | Skip _ | Reverse _ ->
         (replace game.hands player new_hand, game.curr_deck)
     | _ -> failwith "Non-number card functionality unimplemented"
   (* To-do: Add non-number card functionality to switch hands around when
@@ -132,8 +141,21 @@ module Game = struct
   let play_card (game : t) (card : Card.card) (new_hand : Hand.t) =
     let player = game.curr_player in
     let hands, new_deck = update_hands game player new_hand card in
-    let next_player = next_player card player (List.length hands) in
-    { curr_deck = new_deck; curr_card = card; curr_player = next_player; hands }
+    let curr_player_index, hands, human_index =
+      if check_reverse card then
+        ( List.length game.hands - player - 1,
+          List.rev hands,
+          List.length hands - 1 )
+      else (player, hands, game.human_index)
+    in
+    let next_player = next_player card curr_player_index (List.length hands) in
+    {
+      curr_deck = new_deck;
+      curr_card = card;
+      curr_player = next_player;
+      hands;
+      human_index;
+    }
 
   (* For a robot's turn, plays a robot card by drawing a random card from their
      hand and playing it *)
