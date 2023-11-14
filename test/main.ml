@@ -263,7 +263,9 @@ let hand_tests =
     "check_valid_card for similar non-existing card in the deck"
     >:: check_valid_card_test false (Card.to_card "Red Plus 2") hand1;
     "check_valid_card for used wildcard vs unused wildcard"
-    >:: check_valid_card_test false (Card.to_card "Blue Wildcard") hand1;
+    >:: check_valid_card_test true (Card.to_card "Blue Wildcard") hand1;
+    "check_valid_card for any wildcard4"
+    >:: check_valid_card_test true (Card.to_card "Red Wildcard4") hand1;
     "add_card random number card"
     >:: add_card_test
           [
@@ -333,6 +335,36 @@ let hand_tests =
             unused_wildcard4;
           ]
           plus2_card hand1;
+    "play_card used wildcard in list"
+    >:: play_card_test
+          [
+            reverse_card;
+            skip_card;
+            plus2_card;
+            unused_wildcard;
+            Card.to_card "Green 8";
+            number_card;
+            Card.to_card "Red 5";
+            plus2_card;
+            unused_wildcard4;
+          ]
+          (Card.to_card "Green Wildcard")
+          (Hand.add_card (Card.to_card "Green Wildcard") hand1);
+    "play_card unused wildcard in list with used wildcard"
+    >:: play_card_test
+          [
+            reverse_card;
+            skip_card;
+            plus2_card;
+            Card.to_card "Yellow Wildcard";
+            Card.to_card "Green 8";
+            number_card;
+            Card.to_card "Red 5";
+            plus2_card;
+            unused_wildcard4;
+          ]
+          unused_wildcard
+          (Hand.add_card (Card.to_card "Yellow Wildcard") hand1);
     "play_card non-existing card in list"
     >:: play_card_invalid_arg_test (Card.to_card "Green Skip") hand1;
   ]

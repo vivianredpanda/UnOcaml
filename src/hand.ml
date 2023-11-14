@@ -22,14 +22,27 @@ module Hand : Hand = struct
   type t = Card.card list
 
   (* Checks that card c exists in h *)
-  let check_valid_card (c : Card.card) (h : t) = List.exists (fun x -> x = c) h
+  let check_valid_card (c : Card.card) (h : t) =
+    match c with
+    | Wildcard col ->
+        List.exists (fun x -> (x = Card.(Wildcard Any)) || x = c) h
+    | Wildcard4 col ->
+        List.exists (fun x -> (x = Card.(Wildcard4 Any)) || x = c) h
+    | _ -> List.exists (fun x -> x = c) h
+
   let add_card (c : Card.card) (h : t) : t = c :: h
 
   (* Returns [h] after removing one instance of the element [c] *)
   let rec remove_card (c : Card.card) (h : t) (acc : t) : t =
+    let card =
+      match c with
+      | Wildcard color -> if List.mem c h then c else Card.(Wildcard Any)
+      | Wildcard4 color -> if List.mem c h then c else Card.(Wildcard4 Any)
+      | _ -> c
+    in
     match h with
     | [] -> acc
-    | h :: t -> if h = c then acc @ t else remove_card c t (h :: acc)
+    | h :: t -> if h = card then acc @ t else remove_card card t (h :: acc)
 
   let play_card (c : Card.card) (h : t) : t =
     if check_valid_card c h then remove_card c h []

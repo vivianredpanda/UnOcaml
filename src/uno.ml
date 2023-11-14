@@ -167,10 +167,15 @@ module Game = struct
     in
     play_card game next_card
       (Hand.play_card next_card (List.nth game.hands player))
+  (* TODO: add functionality to handle robot playing wildcards *)
 
   let handle_play (game : t) (is_human : bool) (card_input : string) : t =
     if is_human then
       if card_input = "" then raise (Invalid_argument "invalid card input")
+      else if card_input = "Any Wildcard" then
+        raise (Invalid_argument "need to specify wildcard color")
+      else if card_input = "Any Wildcard4" then
+        raise (Invalid_argument "need to specify wildcard4 color")
       else
         let card = Card.to_card card_input in
         if check_play game card then
