@@ -16,9 +16,9 @@ play:
 utop:
 	OCAMLRUNPARAM=b dune utop src
 
-# countlines:
-# 	dune clean
-# 	cloc --by-file --include-lang=OCaml . 
+countlines:
+	dune clean
+	cloc --by-file --include-lang=OCaml . 
 
 zip:
 	rm -f unocaml.zip
