@@ -28,10 +28,10 @@ module type Game = sig
   val get_human_index : t -> int
   (** Return the index of the human player within the list of hands *)
 
-  val get_curr_status : t -> status
+  val get_curr_status : t -> string
   (** Given a current game state, returns the current player's status. *)
 
-  val get_prev_status : t -> status
+  val get_prev_status : t -> string
   (** Given a current game state, returns the previous player's status
       (determines previous player index using game's curr_player field). *)
 

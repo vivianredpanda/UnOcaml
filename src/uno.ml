@@ -17,8 +17,8 @@ module type Game = sig
   val get_curr_player : t -> int
   val get_hand : t -> int -> Hand.t
   val get_human_index : t -> int
-  val get_curr_status : t -> status
-  val get_prev_status : t -> status
+  val get_curr_status : t -> string
+  val get_prev_status : t -> string
   val hands_to_list : t -> Card.card list list
   val check_play : t -> Card.card -> bool
   val build : int -> t
@@ -58,14 +58,20 @@ module Game = struct
     | 3 -> List.nth hands 3
     | _ -> failwith "invalid player number"
 
-  let get_curr_status (game : t) : status =
-    List.nth game.statuses game.curr_player
+  let status_to_string stat =
+    match stat with
+    | Normal -> "Normal"
+    | Uno -> "Uno"
+    | Won -> "Won"
 
-  let get_prev_status (game : t) : status =
+  let get_curr_status (game : t) : string =
+    status_to_string (List.nth game.statuses game.curr_player)
+
+  let get_prev_status (game : t) : string =
     let prev_idx =
       (List.length game.hands + game.curr_player - 1) mod List.length game.hands
     in
-    List.nth game.statuses prev_idx
+    status_to_string (List.nth game.statuses prev_idx)
 
   let hands_to_list (game : t) : Card.card list list =
     let rec to_list_list hands =
