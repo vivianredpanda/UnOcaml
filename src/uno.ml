@@ -215,7 +215,7 @@ module Game = struct
       | h :: t -> Card.string_of_card h ^ " " ^ hand_to_str t
     in
     print_endline
-      ("new hand after playing card " ^ Card.string_of_card card ^ " "
+      ("after playing card " ^ Card.string_of_card card ^ " for new hand: "
       ^ hand_to_str (Hand.to_list (List.nth hands curr_player_index)));
     {
       curr_deck = new_deck;
