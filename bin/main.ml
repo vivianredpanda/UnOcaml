@@ -27,7 +27,14 @@ open Uno
 let rec pp_list acc lst =
   match lst with
   | [] -> acc
-  | h :: t -> pp_list (h ^ ", " ^ acc) t
+  | [ h ] -> h ^ acc
+  | h :: t -> pp_list (", " ^ h ^ acc) t
+
+(* let draw (game_s : Game.t) = let card_drawn = Deck.draw (Game.get_deck
+   game_s) in let new_hand = Hand.add_card (Stdlib.fst card_drawn)
+   (Game.get_hand game_s (Game.get_curr_player game_s)) in { curr_deck :
+   Stdlib.snd card_drawn; curr_card : Card.card; curr_player : int; hands :
+   Hand.t list; human_index : int; } game_s *)
 
 (*********** command line interface ***********)
 let () =
@@ -43,72 +50,90 @@ let () =
     \ exists, you must draw a card. If this card is valid, you may play it. \n\n\
     \ Play continues until one player has gotten rid of all their cards. \n\n\
     \ Please refer to the official Uno manuel for further clarifications. \n\n";
-  print_endline "Please enter start:";
+  print_endline "Please enter the number of players:";
   print_string "> ";
-  let start_line = read_line () in
-  match start_line with
-  | "start" ->
+  let num_players = read_line () in
+  match num_players with
+  | "1" ->
       print_endline "Dealing cards. . . ";
-      let game_state = Game.build 1 in
-      let game_round game_state : Game.t =
+      let game_state = ref (Game.build 1) in
+      let curr_hand =
+        Game.get_hand !game_state (Game.get_curr_player !game_state)
+      in
+      game_state :=
+        Game.play_card !game_state
+          (Stdlib.fst (Deck.draw (Game.get_deck !game_state)))
+          curr_hand;
+      while
+        not (List.length (Hand.to_list (Game.get_hand !game_state 0)) = 0)
+      do
         print_endline "Your cards : ";
         let curr_hand =
-          Game.get_hand game_state (Game.get_curr_player game_state)
+          Game.get_hand !game_state (Game.get_curr_player !game_state)
         in
         print_endline
           (pp_list "" (Hand.to_list curr_hand |> List.map Card.string_of_card));
-        let game_state =
-          Game.play_card game_state
-            (Stdlib.fst (Deck.draw (Game.get_deck game_state)))
-            curr_hand
-        in
-        print_endline (Game.get_curr_card game_state |> Card.string_of_card);
-        (* if Game.get_curr_player game_state <> 0 then Game.robot_turn
-           game_state (Game.get_curr_player game_state) else begin *)
-        print_endline "Please enter your move [color card]: ";
+        print_endline
+          ("Current Card : "
+          ^ Card.string_of_card (Game.get_curr_card !game_state));
+        print_endline "Please enter your move [color card] or 'Draw card': ";
         print_string "> ";
         let user_in = read_line () in
-        (* let card_played = Card.to_card user_in in *)
-        print_endline (string_of_int (Game.get_curr_player game_state));
-        let game_state =
-          Game.handle_play game_state
-            (Game.get_curr_player game_state = 0)
-            user_in
-        in
-        game_state
-        (* print_endline "Your cards : "; *)
-        (* game_state end *)
-      in
-      if Game.get_curr_player game_state <> 0 then
-        print_endline
-          ("Player "
-          ^ string_of_int (Game.get_curr_player game_state)
-          ^ " played : "
-          ^ Card.string_of_card (Game.get_curr_card game_state)
-          ^ ".")
-      else
-        let game_state = game_round game_state in
-        print_endline "Nice move! "
-  | _ -> failwith "Expected 'start'."
-(* let file = read_line () in print_endline "Reading file..."; let input = file
-   |> In_channel.open_text |> In_channel.input_all in print_endline "Please
-   enter the type of model you want to build: \n\ \"random N\", \"best N\", or
-   \"interp N\", where N is the n-gram size."; print_string "> "; match
-   String.split_on_char ' ' (read_line ()) with | [ "random"; n ] ->
-   print_endline "Building random model (this may take a while)..."; let ngram =
-   build_rand_ngram input (int_of_string n) in print_endline "Done building
-   random model!"; print_string "Please enter the max number of words to
-   generate: "; let max_len = int_of_string (read_line ()) in print_endline
-   "Ready to chat! (Ctrl-D or blank to quit.)"; repl (create_rand_sequence ngram
-   max_len) | [ "best"; n ] -> print_endline "Building most-frequent model (this
-   may take a while)..."; let ngram = build_freq_ngram input (int_of_string n)
-   in print_endline "Done building most-frequent model!"; print_string "Please
-   enter the max number of words to generate: "; let max_len = int_of_string
-   (read_line ()) in print_endline "Ready to chat! (Ctrl-D or blank to quit.)";
-   repl (create_freq_sequence ngram max_len) | [ "interp"; n ] -> print_endline
-   "Building interpolated model (this may take a while)..."; let ngram =
-   build_interp_ngram input (int_of_string n) in print_endline "Done building
-   interpolated model!"; print_string "Please enter the max number of words to
-   generate: "; let max_len = int_of_string (read_line ()) in print_endline
-   "Ready to chat! (Ctrl-D or blank to quit.)"; repl (create_interp_sequence
-   ngram max_len) | _ -> failwith "Expected exactly two arguments." *)
+        match user_in with
+        | "Draw card" ->
+            game_state :=
+              Game.handle_play !game_state
+                (Game.get_curr_player !game_state = 0)
+                user_in;
+            print_endline "Your new cards : ";
+            let n_curr_hand =
+              Game.get_hand !game_state (Game.get_curr_player !game_state)
+            in
+            print_endline
+              (pp_list ""
+                 (Hand.to_list n_curr_hand |> List.map Card.string_of_card));
+            print_endline
+              "Do you want to play this card? ('Pass' or enter card to play)";
+            print_string "> ";
+            let d_user_in = read_line () in
+            game_state :=
+              Game.handle_play !game_state
+                (Game.get_curr_player !game_state = 0)
+                d_user_in;
+            print_endline "Nice move!"
+        | "Pass" -> failwith "Invalid Move."
+        | _ -> (
+            (* print_endline (string_of_int (Game.get_curr_player
+               !game_state)); *)
+            game_state :=
+              Game.handle_play !game_state
+                (Game.get_curr_player !game_state = 0)
+                user_in;
+            print_endline "Nice move!";
+            print_endline "Anything to say?";
+            print_string "> ";
+            let if_uno = read_line () in
+            match if_uno with
+            | "Uno" -> begin
+                if List.length (Hand.to_list (Game.get_hand !game_state 0)) = 1
+                then print_endline "UnOCaml"
+                else print_endline "Incorrect UnOCaml";
+                game_state :=
+                  Game.handle_play !game_state
+                    (Game.get_curr_player !game_state = 0)
+                    "Draw Card"
+              end
+            | _ -> begin
+                if List.length (Hand.to_list (Game.get_hand !game_state 0)) = 1
+                then (
+                  print_endline "Missed UnOCaml";
+                  game_state :=
+                    Game.handle_play !game_state
+                      (Game.get_curr_player !game_state = 0)
+                      "Draw card")
+                else print_endline "No UnOCaml"
+              end)
+      done
+      (* if (List.length (Hand.to_list (Game.get_hand !game_state 0)) = 0)
+         then *)
+  | _ -> failwith "Failure : Multi-player Game Unimplemented."
