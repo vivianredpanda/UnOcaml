@@ -8,6 +8,11 @@ open Deck
 module type Game = sig
   type t
 
+  type status =
+    | Normal
+    | Uno
+    | Won
+
   val get_deck : t -> Deck.t
   (** Return current deck. *)
 
@@ -26,6 +31,10 @@ module type Game = sig
   val hands_to_list : t -> Card.card list list
   (** Given a current game state, returns all the players' hands in the form of
       a list of card lists. *)
+
+  val get_prev_status : t -> status
+  (** Given a current game state, returns the previous player's status
+      (determines previous player index using game's curr_player field). *)
 
   val check_play : t -> Card.card -> bool
   (** Check if move is valid and return true if valid or false if invalid. *)

@@ -407,6 +407,8 @@ let uno_tests =
        Game.get_curr_player (( + ) 0) (( + ) 0); play_card_test "play_card
        remove 1 card from player 0 hand" 6 4 Game.hands_to_list List.hd
        List.length; *)
+    (* TODO: can also add more tests here for testing statuses - at start of
+       game, all statuses are Normal *)
   ]
 
 let tests =

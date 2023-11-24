@@ -7,11 +7,17 @@ open Deck
 module type Game = sig
   type t
 
+  type status =
+    | Normal
+    | Uno
+    | Won
+
   val get_deck : t -> Deck.t
   val get_curr_card : t -> Card.card
   val get_curr_player : t -> int
   val get_hand : t -> int -> Hand.t
   val get_human_index : t -> int
+  val get_prev_status : t -> status
   val hands_to_list : t -> Card.card list list
   val check_play : t -> Card.card -> bool
   val build : int -> t
@@ -21,13 +27,18 @@ module type Game = sig
 end
 
 module Game = struct
-  (* UNIMPLEMENTED: stacking +2 or +4 *)
+  type status =
+    | Normal
+    | Uno
+    | Won
+
   type t = {
     curr_deck : Deck.t;
     curr_card : Card.card;
     curr_player : int;
     hands : Hand.t list;
     human_index : int;
+    statuses : status list;
   }
 
   let get_deck (game : t) : Deck.t = game.curr_deck
@@ -53,6 +64,12 @@ module Game = struct
       | hand :: t -> Hand.to_list hand :: to_list_list t
     in
     to_list_list game.hands
+
+  let get_prev_status (game : t) : status =
+    let prev_idx =
+      (List.length game.hands + game.curr_player - 1) mod List.length game.hands
+    in
+    List.nth game.statuses prev_idx
 
   let check_play (game : t) (card : Card.card) : bool =
     match card with
@@ -96,6 +113,11 @@ module Game = struct
         let new_deck, hand = Deck.deal deck in
         deal_hands new_deck (Hand.of_list hand :: lst) (n - 1)
 
+  (* Build helper function, sets the statuses of all the players initially to
+     Normal by returning a list of the length of # players with each element as
+     Normal. *)
+  let rec init_statuses n = if n = 0 then [] else Normal :: init_statuses (n - 1)
+
   let build n =
     let start_deck = Deck.reset () in
     let starting_hands, dealt_deck = deal_hands start_deck [] n in
@@ -106,6 +128,7 @@ module Game = struct
       curr_player = 0;
       hands = starting_hands;
       human_index = 0;
+      statuses = init_statuses (List.length starting_hands);
     }
 
   (* Checks if the given card is a Reverse card *)
@@ -187,6 +210,22 @@ module Game = struct
       curr_player = next_player;
       hands;
       human_index;
+      statuses = game.statuses;
+    }
+
+  (* Updates a certain player's status based on the number of cards they have
+     left and returns the game state. *)
+  let update_status (game : t) (player : int) (s : status) : t =
+    let new_statuses =
+      List.mapi (fun i x -> if i = player then s else x) game.statuses
+    in
+    {
+      curr_deck = game.curr_deck;
+      curr_card = game.curr_card;
+      curr_player = game.curr_player;
+      hands = game.hands;
+      human_index = game.human_index;
+      statuses = new_statuses;
     }
 
   (* For a robot's turn, plays a robot card by drawing a random card from their
@@ -220,6 +259,7 @@ module Game = struct
           curr_player = game.curr_player;
           hands = new_hands;
           human_index = game.human_index;
+          statuses = game.statuses;
         }
       else if card_input = "Pass" then
         let next_idx =
@@ -232,6 +272,7 @@ module Game = struct
           curr_player = next_idx;
           hands = game.hands;
           human_index = game.human_index;
+          statuses = game.statuses;
         }
       else
         let card = Card.to_card card_input in
@@ -239,14 +280,10 @@ module Game = struct
           let new_hand =
             Hand.play_card card (List.nth game.hands game.curr_player)
           in
-          if Hand.to_list new_hand = [] then failwith "unimplemented"
-            (* TODO: functionality for what to do when user won -> played last
-               card - maybe add some field in t (ifWon?) to indicate curr_player
-               has won*)
-          else if List.length (Hand.to_list new_hand) = 1 then failwith "at uno"
-            (* TODO: decide implementation for when user has one card left,
-               maybe field in t (arr of those with one card) to indicate which
-               players have uno? *)
+          if Hand.to_list new_hand = [] then
+            update_status game game.curr_player Won
+          else if List.length (Hand.to_list new_hand) = 1 then
+            update_status game game.curr_player Uno
           else play_card game card new_hand
         else raise (Invalid_argument "invalid move")
     else robot_turn game game.curr_player
