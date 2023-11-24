@@ -190,8 +190,8 @@ module Game = struct
     let new_hands, new_deck =
       (replace game.hands player new_hand, game.curr_deck)
     in
-    let next_idx = next_player card player (List.length game.hands) in
-    let next_hand = get_hand game next_idx in
+    let next_idx = next_player card player (List.length new_hands) in
+    let next_hand = List.nth new_hands next_idx in
     match card with
     | Number _ | Wildcard _ | Skip _ | Reverse _ -> (new_hands, new_deck)
     | Wildcard4 _ -> handle_draw 4 new_hands next_idx next_hand new_deck
@@ -209,14 +209,10 @@ module Game = struct
     in
     let next_player = next_player card curr_player_index (List.length hands) in
     (* TODO: remove this print stuff later *)
-    let rec hand_to_str (hnd : Card.card list) =
-      match hnd with
-      | [] -> ""
-      | h :: t -> Card.string_of_card h ^ " " ^ hand_to_str t
-    in
-    print_endline
-      ("after playing card " ^ Card.string_of_card card ^ " for new hand: "
-      ^ hand_to_str (Hand.to_list (List.nth hands curr_player_index)));
+    (* let rec hand_to_str (hnd : Card.card list) = match hnd with | [] -> "" |
+       h :: t -> Card.string_of_card h ^ " " ^ hand_to_str t in print_endline
+       ("after playing card " ^ Card.string_of_card card ^ " for new hand: " ^
+       hand_to_str (Hand.to_list (List.nth hands curr_player_index))); *)
     {
       curr_deck = new_deck;
       curr_card = card;
@@ -291,25 +287,20 @@ module Game = struct
         let card = Card.to_card card_input in
         (* TODO: look into potential bug - printing with Plus 2, Wildcard Plus,
            etc don't work - doesn't update the curr hand correctly *)
-        if check_play game card then (
+        if check_play game card then
           let new_hand =
             Hand.play_card card (List.nth game.hands game.curr_player)
           in
           (* TODO: also remove this print stuff later *)
-          let rec hand_to_str (hnd : Card.card list) =
-            match hnd with
-            | [] -> ""
-            | h :: t -> Card.string_of_card h ^ " " ^ hand_to_str t
-          in
-          print_endline
-            ("test print of new_hand b4 play_card "
-            ^ hand_to_str (Hand.to_list new_hand));
-
+          (* let rec hand_to_str (hnd : Card.card list) = match hnd with | [] ->
+             "" | h :: t -> Card.string_of_card h ^ " " ^ hand_to_str t in
+             print_endline ("test print of new_hand b4 play_card " ^ hand_to_str
+             (Hand.to_list new_hand)); *)
           if Hand.to_list new_hand = [] then
             play_card (update_status game game.curr_player Won) card new_hand
           else if List.length (Hand.to_list new_hand) = 1 then
             play_card (update_status game game.curr_player Uno) card new_hand
-          else play_card game card new_hand)
+          else play_card game card new_hand
         else raise (Invalid_argument "invalid move")
     else robot_turn game game.curr_player
 end
