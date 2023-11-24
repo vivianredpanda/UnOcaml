@@ -33,14 +33,14 @@ module Hand : Hand = struct
   let add_card (c : Card.card) (h : t) : t = c :: h
 
   (* Returns [h] after removing one instance of the element [c] *)
-  let rec remove_card (c : Card.card) (h : t) (acc : t) : t =
+  let rec remove_card (c : Card.card) (hand : t) (acc : t) : t =
     let card =
       match c with
-      | Wildcard color -> if List.mem c h then c else Card.(Wildcard Any)
-      | Wildcard4 color -> if List.mem c h then c else Card.(Wildcard4 Any)
+      | Wildcard color -> if List.mem c hand then c else Card.(Wildcard Any)
+      | Wildcard4 color -> if List.mem c hand then c else Card.(Wildcard4 Any)
       | _ -> c
     in
-    match h with
+    match hand with
     | [] -> acc
     | h :: t -> if h = card then acc @ t else remove_card card t (h :: acc)
 

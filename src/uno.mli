@@ -28,13 +28,16 @@ module type Game = sig
   val get_human_index : t -> int
   (** Return the index of the human player within the list of hands *)
 
-  val hands_to_list : t -> Card.card list list
-  (** Given a current game state, returns all the players' hands in the form of
-      a list of card lists. *)
+  val get_curr_status : t -> status
+  (** Given a current game state, returns the current player's status. *)
 
   val get_prev_status : t -> status
   (** Given a current game state, returns the previous player's status
       (determines previous player index using game's curr_player field). *)
+
+  val hands_to_list : t -> Card.card list list
+  (** Given a current game state, returns all the players' hands in the form of
+      a list of card lists. *)
 
   val check_play : t -> Card.card -> bool
   (** Check if move is valid and return true if valid or false if invalid. *)

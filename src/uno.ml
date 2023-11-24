@@ -17,6 +17,7 @@ module type Game = sig
   val get_curr_player : t -> int
   val get_hand : t -> int -> Hand.t
   val get_human_index : t -> int
+  val get_curr_status : t -> status
   val get_prev_status : t -> status
   val hands_to_list : t -> Card.card list list
   val check_play : t -> Card.card -> bool
@@ -57,6 +58,15 @@ module Game = struct
     | 3 -> List.nth hands 3
     | _ -> failwith "invalid player number"
 
+  let get_curr_status (game : t) : status =
+    List.nth game.statuses game.curr_player
+
+  let get_prev_status (game : t) : status =
+    let prev_idx =
+      (List.length game.hands + game.curr_player - 1) mod List.length game.hands
+    in
+    List.nth game.statuses prev_idx
+
   let hands_to_list (game : t) : Card.card list list =
     let rec to_list_list hands =
       match hands with
@@ -64,12 +74,6 @@ module Game = struct
       | hand :: t -> Hand.to_list hand :: to_list_list t
     in
     to_list_list game.hands
-
-  let get_prev_status (game : t) : status =
-    let prev_idx =
-      (List.length game.hands + game.curr_player - 1) mod List.length game.hands
-    in
-    List.nth game.statuses prev_idx
 
   let check_play (game : t) (card : Card.card) : bool =
     match card with
@@ -204,6 +208,15 @@ module Game = struct
       else (player, hands, game.human_index)
     in
     let next_player = next_player card curr_player_index (List.length hands) in
+    (* TODO: remove this print stuff later *)
+    let rec hand_to_str (hnd : Card.card list) =
+      match hnd with
+      | [] -> ""
+      | h :: t -> Card.string_of_card h ^ " " ^ hand_to_str t
+    in
+    print_endline
+      ("new hand after playing card " ^ Card.string_of_card card ^ " "
+      ^ hand_to_str (Hand.to_list (List.nth hands curr_player_index)));
     {
       curr_deck = new_deck;
       curr_card = card;
@@ -276,15 +289,27 @@ module Game = struct
         }
       else
         let card = Card.to_card card_input in
-        if check_play game card then
+        (* TODO: look into potential bug - printing with Plus 2, Wildcard Plus,
+           etc don't work - doesn't update the curr hand correctly *)
+        if check_play game card then (
           let new_hand =
             Hand.play_card card (List.nth game.hands game.curr_player)
           in
+          (* TODO: also remove this print stuff later *)
+          let rec hand_to_str (hnd : Card.card list) =
+            match hnd with
+            | [] -> ""
+            | h :: t -> Card.string_of_card h ^ " " ^ hand_to_str t
+          in
+          print_endline
+            ("test print of new_hand b4 play_card "
+            ^ hand_to_str (Hand.to_list new_hand));
+
           if Hand.to_list new_hand = [] then
-            update_status game game.curr_player Won
+            play_card (update_status game game.curr_player Won) card new_hand
           else if List.length (Hand.to_list new_hand) = 1 then
-            update_status game game.curr_player Uno
-          else play_card game card new_hand
+            play_card (update_status game game.curr_player Uno) card new_hand
+          else play_card game card new_hand)
         else raise (Invalid_argument "invalid move")
     else robot_turn game game.curr_player
 end

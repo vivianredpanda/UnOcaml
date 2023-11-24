@@ -321,7 +321,8 @@ let hand_tests =
             Card.to_card "Red 5";
             plus2_card;
           ]
-          unused_wildcard4 hand1;
+          (Card.to_card "Blue Wildcard4")
+          hand1;
     "play_card multiple same card in list"
     >:: play_card_test
           [
@@ -350,6 +351,12 @@ let hand_tests =
           ]
           (Card.to_card "Green Wildcard")
           (Hand.add_card (Card.to_card "Green Wildcard") hand1);
+    "play_card a wildcard"
+    >:: play_card_test
+          [ Card.to_card "Yellow Reverse" ]
+          (Card.to_card "Yellow Wildcard4")
+          (Hand.of_list
+             [ Card.to_card "Any Wildcard4"; Card.to_card "Yellow Reverse" ]);
     "play_card unused wildcard in list with used wildcard"
     >:: play_card_test
           [
@@ -363,7 +370,7 @@ let hand_tests =
             plus2_card;
             unused_wildcard4;
           ]
-          unused_wildcard
+          (Card.to_card "Red Wildcard")
           (Hand.add_card (Card.to_card "Yellow Wildcard") hand1);
     "play_card non-existing card in list"
     >:: play_card_invalid_arg_test (Card.to_card "Green Skip") hand1;
