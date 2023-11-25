@@ -68,9 +68,7 @@ module Game = struct
     status_to_string (List.nth game.statuses game.curr_player)
 
   let get_prev_status (game : t) : string =
-    let prev_idx =
-      (List.length game.hands + game.curr_player - 1) mod List.length game.hands
-    in
+    let prev_idx = (game.curr_player - 1) mod List.length game.hands in
     status_to_string (List.nth game.statuses prev_idx)
 
   let hands_to_list (game : t) : Card.card list list =
@@ -159,13 +157,12 @@ module Game = struct
         else h :: replace t (player - 1) new_hand
 
   (* Given a card, a player index, and a total number of players, returns the
-     index of the next player. Requires 0 <= [player] < [n] - 1. *)
+     index of the next player. Requires 0 < [player] < [n] - 1. *)
   let next_player (card : Card.card) (player : int) (n : int) : int =
     match card with
     | Number _ | Plus _ | Wildcard _ | Wildcard4 _ | Reverse _ ->
         if player = n - 1 then 0 else player + 1
-    | Skip _ ->
-        if player = n - 1 then 1 else if player = n - 2 then 0 else player + 2
+    | Skip _ -> (player + 1) mod n
 
   (* Given a list of drawn cards and a hand to add them to, returns the new hand
      with all the cards added. *)
@@ -243,6 +240,10 @@ module Game = struct
       statuses = new_statuses;
     }
 
+  let robot_smart_wildcard (game : t) (player : int) (card : Card.card) : t =
+    (* do some math -> choose wildcard color based on most common *)
+    play_card game card (Hand.play_card card (List.nth game.hands player))
+
   (* For a robot's turn, plays a robot card by drawing a random card from their
      hand and playing it *)
   let robot_turn (game : t) (player : int) : t =
@@ -251,8 +252,19 @@ module Game = struct
     let next_card =
       List.nth valid_cards (Random.int (List.length valid_cards))
     in
-    play_card game next_card
-      (Hand.play_card next_card (List.nth game.hands player))
+    (* TODO: make method to count type of card for each type (eg: # wildcards, #
+       plus cards, etc.) *)
+    (* based on that number of some type of card -> do some move *)
+    (* normally just get rid of number cards *)
+    (* also ai for reverse - check other players' number of cards *)
+    (* same for skip or plus - we can prioritize playing a skip if estimate if
+       estimate low for next player *)
+    match next_card with
+    | Number _ | Skip _ | Reverse _ | Plus _ ->
+        play_card game next_card
+          (Hand.play_card next_card (List.nth game.hands player))
+    | Wildcard _ | Wildcard4 _ -> robot_smart_wildcard game player next_card
+
   (* TODO: add functionality to handle robot playing wildcards *)
 
   let handle_play (game : t) (is_human : bool) (card_input : string) : t =
@@ -277,10 +289,7 @@ module Game = struct
           statuses = game.statuses;
         }
       else if card_input = "Pass" then
-        let next_idx =
-          (List.length game.hands + game.curr_player + 1)
-          mod List.length game.hands
-        in
+        let next_idx = (game.curr_player + 1) mod List.length game.hands in
         {
           curr_deck = game.curr_deck;
           curr_card = game.curr_card;
