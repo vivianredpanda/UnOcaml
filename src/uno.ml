@@ -47,16 +47,11 @@ module Game = struct
   let get_curr_player (game : t) : int = game.curr_player
   let get_human_index (game : t) : int = game.human_index
 
-  (* todo: make this work for any n because game can have any number of players
-     and doesnt have to be 4 player *)
   let get_hand (game : t) (player_num : int) : Hand.t =
     let hands = game.hands in
-    match player_num with
-    | 0 -> List.nth hands 0
-    | 1 -> List.nth hands 1
-    | 2 -> List.nth hands 2
-    | 3 -> List.nth hands 3
-    | _ -> failwith "invalid player number"
+    let n = List.length hands in
+    if player_num >= 0 && player_num < n then List.nth hands player_num
+    else failwith "invalid player number"
 
   let status_to_string stat =
     match stat with
