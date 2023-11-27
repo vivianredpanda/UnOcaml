@@ -65,7 +65,11 @@ let () =
           (Stdlib.fst (Deck.draw (Game.get_deck !game_state)))
           curr_hand;
       while
-        not (List.length (Hand.to_list (Game.get_hand !game_state 0)) = 0)
+        not
+          (List.length
+             (Hand.to_list
+                (Game.get_hand !game_state (Game.get_human_index !game_state)))
+          = 0)
       do
         print_endline "Your cards : ";
         let curr_hand =
@@ -83,7 +87,8 @@ let () =
         | "Draw card" ->
             game_state :=
               Game.handle_play !game_state
-                (Game.get_curr_player !game_state = 0)
+                (Game.get_curr_player !game_state
+                = Game.get_human_index !game_state)
                 user_in;
             print_endline "Your new cards : ";
             let n_curr_hand =
@@ -98,7 +103,8 @@ let () =
             let d_user_in = read_line () in
             game_state :=
               Game.handle_play !game_state
-                (Game.get_curr_player !game_state = 0)
+                (Game.get_curr_player !game_state
+                = Game.get_human_index !game_state)
                 d_user_in;
             print_endline "Nice move!"
         | "Pass" -> failwith "Invalid Move."
@@ -107,7 +113,8 @@ let () =
                !game_state)); *)
             game_state :=
               Game.handle_play !game_state
-                (Game.get_curr_player !game_state = 0)
+                (Game.get_curr_player !game_state
+                = Game.get_human_index !game_state)
                 user_in;
             print_endline "Nice move!";
             print_endline "Anything to say?";
@@ -115,22 +122,36 @@ let () =
             let if_uno = read_line () in
             match if_uno with
             | "Uno" -> begin
-                if List.length (Hand.to_list (Game.get_hand !game_state 0)) = 1
+                if
+                  List.length
+                    (Hand.to_list
+                       (Game.get_hand !game_state
+                          (Game.get_human_index !game_state)))
+                  = 1
                 then print_endline "UnOCaml"
-                else print_endline "Incorrect UnOCaml";
-                game_state :=
-                  Game.handle_play !game_state
-                    (Game.get_curr_player !game_state = 0)
-                    "Draw Card"
+                else (
+                  print_endline "Incorrect UnOCaml";
+                  game_state :=
+                    Game.handle_play !game_state
+                      (Game.get_curr_player !game_state
+                      = Game.get_human_index !game_state)
+                      "Draw Card")
               end
             | _ -> begin
-                if List.length (Hand.to_list (Game.get_hand !game_state 0)) = 1
+                if
+                  List.length
+                    (Hand.to_list
+                       (Game.get_hand !game_state
+                          (Game.get_human_index !game_state)))
+                  = 1
                 then (
                   print_endline "Missed UnOCaml";
                   game_state :=
                     Game.handle_play !game_state
                       (Game.get_curr_player !game_state = 0)
-                      "Draw card")
+                      "Draw card"
+                  (*TODO: This always returns an error of Failure ("invalid
+                    color") *))
                 else print_endline "No UnOCaml"
               end)
       done
