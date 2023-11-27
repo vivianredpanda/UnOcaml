@@ -446,7 +446,8 @@ let uno_tests =
     "get hand of player index 1 in a one player game"
     >:: get_hand_failure_test 1 1;
     "get hand of player 4 in a two player game" >:: get_hand_failure_test 2 4;
-    get_hand_test "get_hand of player in newly dealt game" 7 4 1;
+    get_hand_test "get_hand of player in newly dealt 4-player game" 7 4 1;
+    get_hand_test "get_hand of player in newly dealt 1-player game" 7 1 0;
     get_curr_status_test "get status of newly dealt game with 3 players"
       "Normal" 3;
     get_curr_status_test "get status of newly dealt game with 1 player" "Normal"

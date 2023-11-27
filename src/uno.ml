@@ -76,7 +76,7 @@ module Game = struct
     in
     to_list_list game.hands
 
-  (** Check if skip is valid and return true if valid or false if invalid. *)
+  (* Check if skip is valid and return true if valid or false if invalid. *)
   let check_skip (game : t) (color : Card.color) : bool =
     Card.get_color game.curr_card = color
     ||
@@ -84,7 +84,7 @@ module Game = struct
     | Skip _ -> true
     | _ -> false
 
-  (** Check if reverse is valid and return true if valid or false if invalid. *)
+  (* Check if reverse is valid and return true if valid or false if invalid. *)
   let check_reverse (game : t) (color : Card.color) : bool =
     Card.get_color game.curr_card = color
     ||
@@ -92,7 +92,7 @@ module Game = struct
     | Reverse _ -> true
     | _ -> false
 
-  (** Check if number is valid and return true if valid or false if invalid. *)
+  (* Check if number is valid and return true if valid or false if invalid. *)
   let check_number (game : t) (num : int) (color : Card.color) : bool =
     if Card.get_color game.curr_card <> color then
       match Card.get_number game.curr_card with
@@ -100,7 +100,7 @@ module Game = struct
       | None -> false
     else true
 
-  (** Check if plus is valid and return true if valid or false if invalid. *)
+  (* Check if plus is valid and return true if valid or false if invalid. *)
   let check_plus (game : t) (num : int) (color : Card.color) : bool =
     if Card.get_color game.curr_card <> color then
       match game.curr_card with
