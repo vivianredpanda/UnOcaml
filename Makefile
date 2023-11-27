@@ -33,3 +33,6 @@ test:
 clean:
 	dune clean
 	rm -f dna.zip
+
+doc:
+	dune build @doc

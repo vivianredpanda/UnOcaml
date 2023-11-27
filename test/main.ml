@@ -1,3 +1,6 @@
+(* TEST PLAN describing your approach to testing: what you tested, anything you
+   omitted testingm why we believe our test suite demonstrates the correctness
+   of our system *)
 open OUnit2
 open Unocaml
 open Deck
@@ -399,6 +402,37 @@ let play_card_test name out n f1 f2 f3 =
       Game.play_card game card (new_hand |> Deck.to_list |> Hand.of_list))
     |> f1 |> f2 |> f3)
 
+let get_hand_failure_test in1 in2 _ =
+  let exn = Failure "..." in
+  assert_raises
+    ~msg:
+      (Printf.sprintf "function: get_hand\ninput: %s %s" (string_of_int in1)
+         (string_of_int in2))
+    exn
+    (fun () ->
+      try Game.get_hand (Game.build in1) in2 with Failure _ -> raise exn)
+
+let get_hand_test name out n p =
+  name >:: fun _ ->
+  let game = Game.build n in
+  assert_equal ~printer:string_of_int out
+    (Game.get_hand game p |> Hand.to_list |> List.length)
+
+let get_curr_status_test name out n =
+  name >:: fun _ ->
+  let game = Game.build n in
+  assert_equal ~printer:pp_string out (Game.get_curr_status game)
+
+let get_prev_status_test name out n =
+  name >:: fun _ ->
+  let game = Game.build n in
+  assert_equal ~printer:pp_string out (Game.get_prev_status game)
+
+let hands_to_list_test name n =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_int n
+    (Game.build n |> Game.hands_to_list |> List.length)
+
 let uno_tests =
   [
     build_deck_test "build 4 removes 4*7 + 1 cards from starter deck" 79 4;
@@ -409,6 +443,21 @@ let uno_tests =
     build_hands_test "build 0 creates 0 hands" 0 0;
     build_hands_test "build 1 creates 1 hand" 1 1;
     build_hands_test "build 3 creates 3 hands" 3 3;
+    "get hand of player index 1 in a one player game"
+    >:: get_hand_failure_test 1 1;
+    "get hand of player 4 in a two player game" >:: get_hand_failure_test 2 4;
+    get_hand_test "get_hand of player in newly dealt game" 7 4 1;
+    get_curr_status_test "get status of newly dealt game with 3 players"
+      "Normal" 3;
+    get_curr_status_test "get status of newly dealt game with 1 player" "Normal"
+      1;
+    get_prev_status_test "get prev status of newly dealt game with 3 players"
+      "Normal" 3;
+    get_prev_status_test "get prev status of newly dealt game with 2 players"
+      "Normal" 1;
+    hands_to_list_test "hands_to_list has 4 hands for a 4 player game" 4;
+    hands_to_list_test "hands_to_list has 0 hands for a 0 player game" 0;
+    hands_to_list_test "hands_to_list has 1 hand for a 1 player game" 1;
     (* todo: test play_card once non-number card functionality is implemented
        play_card_test "play_card increment player index by 1" 1 4
        Game.get_curr_player (( + ) 0) (( + ) 0); play_card_test "play_card

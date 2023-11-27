@@ -63,7 +63,9 @@ module Game = struct
     status_to_string (List.nth game.statuses game.curr_player)
 
   let get_prev_status (game : t) : string =
-    let prev_idx = (game.curr_player - 1) mod List.length game.hands in
+    let num_players = List.length game.hands in
+    let curr_idx = game.curr_player in
+    let prev_idx = if curr_idx = 0 then num_players - 1 else curr_idx - 1 in
     status_to_string (List.nth game.statuses prev_idx)
 
   let hands_to_list (game : t) : Card.card list list =
@@ -74,37 +76,49 @@ module Game = struct
     in
     to_list_list game.hands
 
-  let check_play (game : t) (card : Card.card) : bool =
-    match card with
-    | Wildcard _ | Wildcard4 _ -> true
-    | Skip color -> (
-        Card.get_color game.curr_card = color
-        ||
-        match game.curr_card with
-        | Skip _ -> true
-        | _ -> false)
-    | Reverse color -> (
-        Card.get_color game.curr_card = color
-        ||
-        match game.curr_card with
-        | Reverse _ -> true
-        | _ -> false)
-    | Number (num, color) ->
-        if Card.get_color game.curr_card <> color then
+  (** Check if skip is valid and return true if valid or false if invalid. *)
+  let check_skip (game : t) (color : Card.color) : bool =
+    Card.get_color game.curr_card = color
+    ||
+    match game.curr_card with
+    | Skip _ -> true
+    | _ -> false
+
+  (** Check if reverse is valid and return true if valid or false if invalid. *)
+  let check_reverse (game : t) (color : Card.color) : bool =
+    Card.get_color game.curr_card = color
+    ||
+    match game.curr_card with
+    | Reverse _ -> true
+    | _ -> false
+
+  (** Check if number is valid and return true if valid or false if invalid. *)
+  let check_number (game : t) (num : int) (color : Card.color) : bool =
+    if Card.get_color game.curr_card <> color then
+      match Card.get_number game.curr_card with
+      | Some n -> n = num
+      | None -> false
+    else true
+
+  (** Check if plus is valid and return true if valid or false if invalid. *)
+  let check_plus (game : t) (num : int) (color : Card.color) : bool =
+    if Card.get_color game.curr_card <> color then
+      match game.curr_card with
+      | Plus (num, _) -> begin
           match Card.get_number game.curr_card with
           | Some n -> n = num
           | None -> false
-        else true
-    | Plus (num, color) ->
-        if Card.get_color game.curr_card <> color then
-          match game.curr_card with
-          | Plus (num, _) -> begin
-              match Card.get_number game.curr_card with
-              | Some n -> n = num
-              | None -> false
-            end
-          | _ -> false
-        else true
+        end
+      | _ -> false
+    else true
+
+  let check_play (game : t) (card : Card.card) : bool =
+    match card with
+    | Wildcard _ | Wildcard4 _ -> true
+    | Skip color -> check_skip game color
+    | Reverse color -> check_reverse game color
+    | Number (num, color) -> check_number game num color
+    | Plus (num, color) -> check_plus game num color
 
   (* Build helper function. Takes in a deck [deck] to deal from, a list of hands
      [lst], and a number of hands to deal [n]. Deals [n] hands and adds each one
