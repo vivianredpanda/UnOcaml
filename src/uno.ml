@@ -249,9 +249,40 @@ module Game = struct
       statuses = new_statuses;
     }
 
+  (* Given a game state, a player index, and a specific card color, counts the
+     number of cards in that player's hand with that color. *)
+  let count_color (game : t) (player : int) (color : Card.color) : int =
+    let robo_hand = List.nth game.hands player in
+    List.length
+      (List.filter (fun c -> Card.get_color c = color) (Hand.to_list robo_hand))
+
+  (* Given a game state, player index, and a card (either a Wildcard or
+     Wildcard4) chooses a color for the robot to play based on most common
+     colors in their hand. *)
   let robot_smart_wildcard (game : t) (player : int) (card : Card.card) : t =
+    (* TODO: test *)
     (* do some math -> choose wildcard color based on most common *)
-    play_card game card (Hand.play_card card (List.nth game.hands player))
+    (* later could modify to account for just number of normal cards - exclude
+       skips, +2's, etc *)
+    let num_red = count_color game player Red in
+    let num_blue = count_color game player Blue in
+    let num_yellow = count_color game player Yellow in
+    let num_green = count_color game player Green in
+    let max_count = max (max (max num_red num_blue) num_green) num_yellow in
+    let color : Card.color =
+      if max_count = num_red then Red
+      else if max_count = num_blue then Blue
+      else if max_count = num_yellow then Yellow
+      else Green
+    in
+    match card with
+    | Wildcard Any ->
+        play_card game card
+          (Hand.play_card (Wildcard color) (List.nth game.hands player))
+    | Wildcard4 Any ->
+        play_card game card
+          (Hand.play_card (Wildcard4 color) (List.nth game.hands player))
+    | _ -> failwith "a non-wildcard(4) has been incorrectly passed in"
 
   (* For a robot's turn, plays a robot card by drawing a random card from their
      hand and playing it *)
