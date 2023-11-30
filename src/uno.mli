@@ -29,7 +29,8 @@ module type Game = sig
   (** Return the index of the human player within the list of hands *)
 
   val get_curr_status : t -> string
-  (** Given a current game state, returns the current player's status. *)
+  (** Given a current game state, returns the current player's status. Requires
+      there is at least one player in the game. *)
 
   val get_prev_status : t -> string
   (** Given a current game state, returns the previous player's status
@@ -49,9 +50,9 @@ module type Game = sig
 
   val play_card : t -> Card.card -> Hand.t -> t
   (** Progress the game based on a card to play. Takes in the hand where the
-      card has been played from, which is equivalent to the current player's 
-      hand in the game minus the card to play. Ex: current player has a hand 
-      {a, b, c}, card to play is {b}, so input hand must be {a, c}. Raises 
+      card has been played from, which is equivalent to the current player's
+      hand in the game minus the card to play. Ex: current player has a hand
+      [{a, b, c}], card to play is [{b}], so input hand must be [{a, c}]. Raises
       Invalid_argument if the card to play is not valid by the rules of Uno. *)
 
   val handle_play : t -> bool -> string -> t

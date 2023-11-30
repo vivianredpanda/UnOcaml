@@ -112,7 +112,8 @@ let () =
         | _ ->
             game_state :=
               Game.handle_play !game_state
-                (Game.get_curr_player !game_state = 0)
+                (Game.get_curr_player !game_state
+                = Game.get_human_index !game_state)
                 user_in;
             print_endline "Nice move!";
             if Game.get_prev_status !game_state = "Uno" then begin

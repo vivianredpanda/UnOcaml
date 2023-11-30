@@ -47,16 +47,11 @@ module Game = struct
   let get_curr_player (game : t) : int = game.curr_player
   let get_human_index (game : t) : int = game.human_index
 
-  (* todo: make this work for any n because game can have any number of players
-     and doesnt have to be 4 player *)
   let get_hand (game : t) (player_num : int) : Hand.t =
     let hands = game.hands in
-    match player_num with
-    | 0 -> List.nth hands 0
-    | 1 -> List.nth hands 1
-    | 2 -> List.nth hands 2
-    | 3 -> List.nth hands 3
-    | _ -> failwith "invalid player number"
+    let n = List.length hands in
+    if player_num >= 0 && player_num < n then List.nth hands player_num
+    else failwith "invalid player number"
 
   let status_to_string stat =
     match stat with
@@ -68,9 +63,9 @@ module Game = struct
     status_to_string (List.nth game.statuses game.curr_player)
 
   let get_prev_status (game : t) : string =
-    let prev_idx =
-      (List.length game.hands + game.curr_player - 1) mod List.length game.hands
-    in
+    let num_players = List.length game.hands in
+    let curr_idx = game.curr_player in
+    let prev_idx = if curr_idx = 0 then num_players - 1 else curr_idx - 1 in
     status_to_string (List.nth game.statuses prev_idx)
 
   let hands_to_list (game : t) : Card.card list list =
@@ -81,37 +76,49 @@ module Game = struct
     in
     to_list_list game.hands
 
-  let check_play (game : t) (card : Card.card) : bool =
-    match card with
-    | Wildcard _ | Wildcard4 _ -> true
-    | Skip color -> (
-        Card.get_color game.curr_card = color
-        ||
-        match game.curr_card with
-        | Skip _ -> true
-        | _ -> false)
-    | Reverse color -> (
-        Card.get_color game.curr_card = color
-        ||
-        match game.curr_card with
-        | Reverse _ -> true
-        | _ -> false)
-    | Number (num, color) ->
-        if Card.get_color game.curr_card <> color then
+  (* Check if skip is valid and return true if valid or false if invalid. *)
+  let check_skip (game : t) (color : Card.color) : bool =
+    Card.get_color game.curr_card = color
+    ||
+    match game.curr_card with
+    | Skip _ -> true
+    | _ -> false
+
+  (* Check if reverse is valid and return true if valid or false if invalid. *)
+  let check_reverse (game : t) (color : Card.color) : bool =
+    Card.get_color game.curr_card = color
+    ||
+    match game.curr_card with
+    | Reverse _ -> true
+    | _ -> false
+
+  (* Check if number is valid and return true if valid or false if invalid. *)
+  let check_number (game : t) (num : int) (color : Card.color) : bool =
+    if Card.get_color game.curr_card <> color then
+      match Card.get_number game.curr_card with
+      | Some n -> n = num
+      | None -> false
+    else true
+
+  (* Check if plus is valid and return true if valid or false if invalid. *)
+  let check_plus (game : t) (num : int) (color : Card.color) : bool =
+    if Card.get_color game.curr_card <> color then
+      match game.curr_card with
+      | Plus (num, _) -> begin
           match Card.get_number game.curr_card with
           | Some n -> n = num
           | None -> false
-        else true
-    | Plus (num, color) ->
-        if Card.get_color game.curr_card <> color then
-          match game.curr_card with
-          | Plus (num, _) -> begin
-              match Card.get_number game.curr_card with
-              | Some n -> n = num
-              | None -> false
-            end
-          | _ -> false
-        else true
+        end
+      | _ -> false
+    else true
+
+  let check_play (game : t) (card : Card.card) : bool =
+    match card with
+    | Wildcard _ | Wildcard4 _ -> true
+    | Skip color -> check_skip game color
+    | Reverse color -> check_reverse game color
+    | Number (num, color) -> check_number game num color
+    | Plus (num, color) -> check_plus game num color
 
   (* Build helper function. Takes in a deck [deck] to deal from, a list of hands
      [lst], and a number of hands to deal [n]. Deals [n] hands and adds each one
@@ -159,13 +166,12 @@ module Game = struct
         else h :: replace t (player - 1) new_hand
 
   (* Given a card, a player index, and a total number of players, returns the
-     index of the next player. Requires 0 <= [player] < [n] - 1. *)
+     index of the next player. Requires 0 < [player] < [n] - 1. *)
   let next_player (card : Card.card) (player : int) (n : int) : int =
     match card with
     | Number _ | Plus _ | Wildcard _ | Wildcard4 _ | Reverse _ ->
         if player = n - 1 then 0 else player + 1
-    | Skip _ ->
-        if player = n - 1 then 1 else if player = n - 2 then 0 else player + 2
+    | Skip _ -> (player + 1) mod n
 
   (* Given a list of drawn cards and a hand to add them to, returns the new hand
      with all the cards added. *)
@@ -243,6 +249,41 @@ module Game = struct
       statuses = new_statuses;
     }
 
+  (* Given a game state, a player index, and a specific card color, counts the
+     number of cards in that player's hand with that color. *)
+  let count_color (game : t) (player : int) (color : Card.color) : int =
+    let robo_hand = List.nth game.hands player in
+    List.length
+      (List.filter (fun c -> Card.get_color c = color) (Hand.to_list robo_hand))
+
+  (* Given a game state, player index, and a card (either a Wildcard or
+     Wildcard4) chooses a color for the robot to play based on most common
+     colors in their hand. *)
+  let robot_smart_wildcard (game : t) (player : int) (card : Card.card) : t =
+    (* TODO: test *)
+    (* do some math -> choose wildcard color based on most common *)
+    (* later could modify to account for just number of normal cards - exclude
+       skips, +2's, etc *)
+    let num_red = count_color game player Red in
+    let num_blue = count_color game player Blue in
+    let num_yellow = count_color game player Yellow in
+    let num_green = count_color game player Green in
+    let max_count = max (max (max num_red num_blue) num_green) num_yellow in
+    let color : Card.color =
+      if max_count = num_red then Red
+      else if max_count = num_blue then Blue
+      else if max_count = num_yellow then Yellow
+      else Green
+    in
+    match card with
+    | Wildcard Any ->
+        play_card game card
+          (Hand.play_card (Wildcard color) (List.nth game.hands player))
+    | Wildcard4 Any ->
+        play_card game card
+          (Hand.play_card (Wildcard4 color) (List.nth game.hands player))
+    | _ -> failwith "a non-wildcard(4) has been incorrectly passed in"
+
   (* For a robot's turn, plays a robot card by drawing a random card from their
      hand and playing it *)
   let robot_turn (game : t) (player : int) : t =
@@ -251,8 +292,19 @@ module Game = struct
     let next_card =
       List.nth valid_cards (Random.int (List.length valid_cards))
     in
-    play_card game next_card
-      (Hand.play_card next_card (List.nth game.hands player))
+    (* TODO: make method to count type of card for each type (eg: # wildcards, #
+       plus cards, etc.) *)
+    (* based on that number of some type of card -> do some move *)
+    (* normally just get rid of number cards *)
+    (* also ai for reverse - check other players' number of cards *)
+    (* same for skip or plus - we can prioritize playing a skip if estimate if
+       estimate low for next player *)
+    match next_card with
+    | Number _ | Skip _ | Reverse _ | Plus _ ->
+        play_card game next_card
+          (Hand.play_card next_card (List.nth game.hands player))
+    | Wildcard _ | Wildcard4 _ -> robot_smart_wildcard game player next_card
+
   (* TODO: add functionality to handle robot playing wildcards *)
 
   let handle_play (game : t) (is_human : bool) (card_input : string) : t =
@@ -277,10 +329,7 @@ module Game = struct
           statuses = game.statuses;
         }
       else if card_input = "Pass" then
-        let next_idx =
-          (List.length game.hands + game.curr_player + 1)
-          mod List.length game.hands
-        in
+        let next_idx = (game.curr_player + 1) mod List.length game.hands in
         {
           curr_deck = game.curr_deck;
           curr_card = game.curr_card;
