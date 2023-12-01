@@ -28,6 +28,12 @@ let pp_list pp_elt lst =
 
 let pp_string s = "\"" ^ s ^ "\""
 let pp_card c = pp_string (Card.string_of_card c)
+
+let pp_bool b =
+  match b with
+  | true -> "true"
+  | false -> "false"
+
 let unused_wildcard = Card.to_card "Any Wildcard"
 let used_wildcard = Card.to_card "Blue Wildcard"
 let unused_wildcard4 = Card.to_card "Any Wildcard4"
@@ -433,6 +439,11 @@ let hands_to_list_test name n =
   assert_equal ~printer:string_of_int n
     (Game.build n |> Game.hands_to_list |> List.length)
 
+let check_play_test name out n card =
+  name >:: fun _ ->
+  let game = Game.build n in
+  assert_equal ~printer:pp_bool out (Game.check_play game card)
+
 let uno_tests =
   [
     build_deck_test "build 4 removes 4*7 + 1 cards from starter deck" 79 4;
@@ -459,13 +470,18 @@ let uno_tests =
     hands_to_list_test "hands_to_list has 4 hands for a 4 player game" 4;
     hands_to_list_test "hands_to_list has 0 hands for a 0 player game" 0;
     hands_to_list_test "hands_to_list has 1 hand for a 1 player game" 1;
-    (* todo: test play_card once non-number card functionality is implemented
-       play_card_test "play_card increment player index by 1" 1 4
-       Game.get_curr_player (( + ) 0) (( + ) 0); play_card_test "play_card
-       remove 1 card from player 0 hand" 6 4 Game.hands_to_list List.hd
-       List.length; *)
-    (* TODO: can also add more tests here for testing statuses - at start of
-       game, all statuses are Normal *)
+    play_card_test "play_card increment player index by 1" 1 4
+      Game.get_curr_player (( + ) 0) (( + ) 0);
+    play_card_test "play_card of first card does not change number of players" 3
+      3 Game.hands_to_list List.length (( + ) 0);
+    (* cant test these because playing the card doesn't always work:
+       play_card_test "play_card\n remove 1 card from player 0 hand" 6 4
+       Game.hands_to_list List.hd List.length; play_card_test "play_card does
+       not change deck" 79 4 Game.get_deck Deck.size (( + ) 0);*)
+    check_play_test "playing wildcard always valid" true 4
+      (Card.to_card "Any Wildcard");
+    check_play_test "playing wildcard4 always valid" true 3
+      (Card.to_card "Yellow Wildcard4");
   ]
 
 let tests =
