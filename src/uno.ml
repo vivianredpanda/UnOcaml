@@ -148,7 +148,7 @@ module Game = struct
       statuses = init_statuses (List.length starting_hands);
     }
 
-  (* Checks if the given card is a Reverse card *)
+  (* Checks if the given card is a Reverse card. *)
   let check_reverse (card : Card.card) =
     match card with
     | Reverse _ -> true

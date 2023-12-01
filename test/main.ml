@@ -1,5 +1,5 @@
 (* TEST PLAN describing your approach to testing: what you tested, anything you
-   omitted testingm why we believe our test suite demonstrates the correctness
+   omitted testing, why we believe our test suite demonstrates the correctness
    of our system *)
 open OUnit2
 open Unocaml
@@ -60,6 +60,34 @@ let get_number_test out in1 _ =
     out
     (option_value (Card.get_number in1))
 
+let to_color_test name out in1 =
+  name >:: fun _ ->
+  assert_equal ~printer:pp_string out
+    (in1 |> Card.to_color |> Card.string_of_color)
+
+let to_color_failure_test color _ =
+  let exn = Failure "..." in
+  assert_raises ~msg:("function: to_color\ninput: %s" ^ color) exn (fun () ->
+      try Card.to_color color with Failure _ -> raise exn)
+
+let to_card_color_test name string_color string_type =
+  name >:: fun _ ->
+  let c = Card.to_card (string_color ^ " " ^ string_type) in
+  assert_equal ~printer:pp_string
+    (String.lowercase_ascii string_color)
+    (c |> Card.get_color |> Card.string_of_color |> String.lowercase_ascii)
+
+let to_card_type_test name string_color string_num =
+  name >:: fun _ ->
+  let c = Card.to_card (string_color ^ " " ^ string_num) in
+  assert_equal ~printer:pp_string string_num
+    (c |> Card.get_number |> option_value |> string_of_int)
+
+let string_of_card_test name string =
+  name >:: fun _ ->
+  assert_equal ~printer:pp_string string
+    (string |> Card.to_card |> Card.string_of_card)
+
 let card_tests =
   [
     "get_color of Unused Wildcard"
@@ -86,6 +114,21 @@ let card_tests =
     "get_number of Skip" >:: get_number_test (-1) skip_card;
     "get_number of Plus Two" >:: get_number_test 2 plus2_card;
     "get_number of Plus Four" >:: get_number_test 4 plus4_card;
+    to_color_test "to_color Red" "Red" "red";
+    to_color_test "to_color Green" "Green" "Green";
+    to_color_test "to_color Yellow" "Yellow" "yeLLOW";
+    to_color_test "to_color Blue" "Blue" "blue";
+    to_color_test "to_color Any" "Any" "anY";
+    "to_color invalid string" >:: to_color_failure_test "orange";
+    to_card_color_test "to_card red card" "red" "Wildcard";
+    to_card_color_test "to_card any card" "any" "Wildcard4";
+    to_card_color_test "to_card yellow card" "yellow" "Reverse";
+    to_card_color_test "to_card blue card" "Blue" "Skip";
+    to_card_type_test "to_card yellow 4" "yellow" "4";
+    to_card_type_test "to_card red 8" "Red" "8";
+    string_of_card_test "string_of_card Yellow 4" "Yellow 4";
+    string_of_card_test "string_of_card Any Wildcard" "Any Wildcard";
+    string_of_card_test "string_of_card green Reverse" "Green Reverse";
   ]
 
 let deck1 =
@@ -470,14 +513,14 @@ let uno_tests =
     hands_to_list_test "hands_to_list has 4 hands for a 4 player game" 4;
     hands_to_list_test "hands_to_list has 0 hands for a 0 player game" 0;
     hands_to_list_test "hands_to_list has 1 hand for a 1 player game" 1;
-    play_card_test "play_card increment player index by 1" 1 4
-      Game.get_curr_player (( + ) 0) (( + ) 0);
     play_card_test "play_card of first card does not change number of players" 3
       3 Game.hands_to_list List.length (( + ) 0);
     (* cant test these because playing the card doesn't always work:
-       play_card_test "play_card\n remove 1 card from player 0 hand" 6 4
-       Game.hands_to_list List.hd List.length; play_card_test "play_card does
-       not change deck" 79 4 Game.get_deck Deck.size (( + ) 0);*)
+       play_card_test "play_card increment player index by 1" 1 4
+       Game.get_curr_player (( + ) 0) (( + ) 0); play_card_test "play_card\n
+       remove 1 card from player 0 hand" 6 4 Game.hands_to_list List.hd
+       List.length; play_card_test "play_card does not change deck" 79 4
+       Game.get_deck Deck.size (( + ) 0);*)
     check_play_test "playing wildcard always valid" true 4
       (Card.to_card "Any Wildcard");
     check_play_test "playing wildcard4 always valid" true 3

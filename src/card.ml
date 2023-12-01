@@ -14,27 +14,28 @@ module Card = struct
     | Wildcard of color
     | Wildcard4 of color
 
-  (* Returns the color of the card. *)
+  (** Returns the color of the card. *)
   let get_color (c : card) : color =
     match c with
     | Reverse col | Skip col | Wildcard col | Wildcard4 col -> col
     | Number (_, col) | Plus (_, col) -> col
 
-  (* Returns Some integer number corresponding to the card. If there does not
-     exist any number corresponding with the card, returns None *)
+  (** Returns Some integer number corresponding to the card. If there does not
+      exist any number corresponding with the card, returns None *)
   let get_number (c : card) : int option =
     match c with
     | Reverse _ | Skip _ | Wildcard _ | Wildcard4 _ -> None
     | Number (num, _) | Plus (num, _) -> Some num
 
-  (** Takes in a string and returns the corresponding color. *)
+  (** Takes in a string and returns the corresponding color. Raises failure if
+      string is not a valid color. *)
   let to_color (c : string) : color =
-    match c with
-    | "Red" -> Red
-    | "Blue" -> Blue
-    | "Green" -> Green
-    | "Yellow" -> Yellow
-    | "Any" -> Any
+    match String.lowercase_ascii c with
+    | "red" -> Red
+    | "blue" -> Blue
+    | "green" -> Green
+    | "yellow" -> Yellow
+    | "any" -> Any
     | _ -> failwith "invalid color"
 
   (** Takes in a color and returns it in string form. *)
@@ -58,12 +59,12 @@ module Card = struct
     let lst = String.split_on_char ' ' name |> List.filter (fun x -> x <> "") in
     let c = to_color (List.nth lst 0) in
     let second = List.nth lst 1 in
-    match second with
-    | "Reverse" -> Reverse c
-    | "Plus" -> Plus (int_of_string (List.nth lst 2), c)
-    | "Skip" -> Skip c
-    | "Wildcard" -> Wildcard c
-    | "Wildcard4" -> Wildcard4 c
+    match String.lowercase_ascii second with
+    | "reverse" -> Reverse c
+    | "plus" -> Plus (int_of_string (List.nth lst 2), c)
+    | "skip" -> Skip c
+    | "wildcard" -> Wildcard c
+    | "wildcard4" -> Wildcard4 c
     | num -> Number (int_of_string num, c)
 
   (** Takes in a card and returns it in string form, following the requirements
