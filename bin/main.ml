@@ -55,6 +55,7 @@ let () =
   print_endline "Please enter the number of players:";
   print_string "> ";
   let num_players = read_line () in
+  (* while (int_of_string num_players <= 4 && int_of_string num_players >= 1) *)
   match int_of_string num_players with
   | n ->
       print_endline "Dealing cards. . . ";
@@ -72,67 +73,80 @@ let () =
              (Game.get_curr_status !game_state)
              (Game.get_prev_status !game_state))
       do
-        print_endline "Your cards : ";
-        let curr_hand =
-          Game.get_hand !game_state (Game.get_curr_player !game_state)
-        in
-        print_endline
-          (pp_list "" (Hand.to_list curr_hand |> List.map Card.string_of_card));
-        print_endline
-          ("Current Card : "
-          ^ Card.string_of_card (Game.get_curr_card !game_state));
-        print_endline "Please enter your move [color card] or 'Draw card': ";
-        print_string "> ";
-        let user_in = read_line () in
-        match user_in with
-        | "Draw card" ->
-            game_state :=
-              Game.handle_play !game_state
-                (Game.get_curr_player !game_state
-                = Game.get_human_index !game_state)
-                user_in;
-            print_endline "Your new cards : ";
-            let n_curr_hand =
-              Game.get_hand !game_state (Game.get_curr_player !game_state)
-            in
-            print_endline
-              (pp_list ""
-                 (Hand.to_list n_curr_hand |> List.map Card.string_of_card));
-            print_endline
-              "Do you want to play this card? ('Pass' or enter card to play)";
-            print_string "> ";
-            let d_user_in = read_line () in
-            game_state :=
-              Game.handle_play !game_state
-                (Game.get_curr_player !game_state
-                = Game.get_human_index !game_state)
-                d_user_in;
-            print_endline "Nice move!"
-        | "Pass" -> failwith "Invalid Move."
-        | _ ->
-            game_state :=
-              Game.handle_play !game_state
-                (Game.get_curr_player !game_state
-                = Game.get_human_index !game_state)
-                user_in;
-            print_endline "Nice move!";
-            if Game.get_prev_status !game_state = "Uno" then begin
-              print_endline "Anything to say?";
+        if Game.get_curr_player !game_state = Game.get_human_index !game_state
+        then begin
+          print_endline "Your cards : ";
+          let curr_hand =
+            Game.get_hand !game_state (Game.get_curr_player !game_state)
+          in
+          print_endline
+            (pp_list ""
+               (Hand.to_list curr_hand |> List.map Card.string_of_card));
+          print_endline
+            ("Current Card : "
+            ^ Card.string_of_card (Game.get_curr_card !game_state));
+          print_endline "Please enter your move [color card] or 'Draw card': ";
+          print_string "> ";
+          let user_in = read_line () in
+          match user_in with
+          | "Draw card" ->
+              game_state :=
+                Game.handle_play !game_state
+                  (Game.get_curr_player !game_state
+                  = Game.get_human_index !game_state)
+                  user_in;
+              print_endline "Your new cards : ";
+              let n_curr_hand =
+                Game.get_hand !game_state (Game.get_curr_player !game_state)
+              in
+              print_endline
+                (pp_list ""
+                   (Hand.to_list n_curr_hand |> List.map Card.string_of_card));
+              print_endline
+                "Do you want to play this card? ('Pass' or enter card to play)";
               print_string "> ";
-              let if_uno = read_line () in
-              match if_uno with
-              | "Uno" -> print_endline "UnOCaml"
-              | _ ->
-                  print_endline "Missed UnOCaml. Drawing card.";
-                  game_state :=
-                    Game.handle_play !game_state
-                      (Game.get_curr_player !game_state = 0)
-                      "Missed UnOCaml"
-              (*TO_DO : add in uno.ml handel_play this option and itll draw card
-                for prev player & update status back to Normal*)
-            end
-            else ()
+              let d_user_in = read_line () in
+              game_state :=
+                Game.handle_play !game_state
+                  (Game.get_curr_player !game_state
+                  = Game.get_human_index !game_state)
+                  d_user_in;
+              print_endline "Nice move!"
+          | "Pass" ->
+              failwith "Invalid move"
+              (* DONT leave these failures if its ivalid then catch and let them
+                 reinput*)
+          | _ ->
+              game_state :=
+                Game.handle_play !game_state
+                  (Game.get_curr_player !game_state
+                  = Game.get_human_index !game_state)
+                  user_in;
+              print_endline "Nice move!";
+              if Game.get_prev_status !game_state = "Uno" then begin
+                print_endline "Anything to say?";
+                print_string "> ";
+                let if_uno = read_line () in
+                match if_uno with
+                | "Uno" -> print_endline "UnOCaml"
+                | _ ->
+                    print_endline "Missed UnOCaml. Drawing card.";
+                    game_state :=
+                      Game.handle_play !game_state
+                        (Game.get_curr_player !game_state = 0)
+                        "Missed UnOCaml"
+                (*TO_DO : add in uno.ml handel_play this option and itll draw
+                  card for prev player & update status back to Normal*)
+              end
+        end
+        else
+          let curr_robot_index = Game.get_curr_player !game_state in
+          game_state := Game.robot_turn !game_state curr_robot_index;
+          print_endline
+            ("Robot "
+            ^ string_of_int curr_robot_index
+            ^ " played : "
+            ^ Card.string_of_card (Game.get_curr_card !game_state))
       done
-  | _ -> failwith "Not a number"
 (* if (Game.get_prev_status !game_state = "Won") then print_endline "YOU WON" in
    () else print_endline "" in (); *)
