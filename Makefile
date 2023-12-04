@@ -20,6 +20,13 @@ countlines:
 	dune clean
 	cloc --by-file --include-lang=OCaml . 
 
+bisect: bisect-clean
+	-dune exec --instrument-with bisect_ppx --force test/main.exe
+	bisect-ppx-report html
+
+bisect-clean:
+	rm -rf _coverage bisect*.coverage
+
 zip:
 	rm -f unocaml.zip
 	zip -r unocaml.zip . 
@@ -30,9 +37,9 @@ unzip:
 test:
 	OCAMLRUNPARAM=b dune exec test/main.exe
 
-clean:
+clean: bisect-clean
 	dune clean
-	rm -f dna.zip
+	rm -f unocaml.zip
 
 doc:
 	dune build @doc

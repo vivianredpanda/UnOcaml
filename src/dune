@@ -1,3 +1,6 @@
 (library
  (name unocaml)
- (public_name Unocaml))
+ (public_name Unocaml)
+ (libraries str unix)
+ (instrumentation
+  (backend bisect_ppx)))
