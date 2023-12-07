@@ -277,10 +277,10 @@ module Game = struct
     in
     match card with
     | Wildcard Any ->
-        play_card game card
+        play_card game (Wildcard color)
           (Hand.play_card (Wildcard color) (List.nth game.hands player))
     | Wildcard4 Any ->
-        play_card game card
+        play_card game (Wildcard4 color)
           (Hand.play_card (Wildcard4 color) (List.nth game.hands player))
     | _ ->
         raise
@@ -293,7 +293,7 @@ module Game = struct
   let robot_turn (game : t) (player : int) : t =
     let curr_hand_lst = Hand.to_list (List.nth game.hands player) in
     let valid_cards = List.filter (fun c -> check_play game c) curr_hand_lst in
-    if List.length valid_cards < 0 then
+    if List.length valid_cards = 0 then
       (* robot draws a card, and if the card is valid, plays the card, otherwise
          passes to next player *)
       let new_hands, new_deck =
@@ -329,7 +329,8 @@ module Game = struct
         (* only have one card to play - play it *)
         let next_card = List.hd new_valid_cards in
         match next_card with
-        | Wildcard _ | Wildcard4 _ -> robot_smart_wildcard game player next_card
+        | Wildcard _ | Wildcard4 _ ->
+            robot_smart_wildcard new_game player next_card
         | _ ->
             play_card new_game next_card
               (Hand.play_card next_card (List.nth new_hands player))
@@ -348,7 +349,6 @@ module Game = struct
           play_card game next_card
             (Hand.play_card next_card (List.nth game.hands player))
       | Wildcard _ | Wildcard4 _ -> robot_smart_wildcard game player next_card
-  (* TODO: WILDCARD PLAYS AS ANY WILDCARD NOT WITH A COLOR *)
 
   let handle_play (game : t) (is_human : bool) (card_input : string) : t =
     if is_human then
@@ -383,16 +383,18 @@ module Game = struct
         }
       else
         let card = Card.to_card card_input in
-        (* TODO: look into potential bug - printing with Plus 2, Wildcard Plus,
-           etc don't work - doesn't update the curr hand correctly *)
+        let curr_player = game.curr_player in
         if check_play game card then
           let new_hand =
-            Hand.play_card card (List.nth game.hands game.curr_player)
+            Hand.play_card card (List.nth game.hands curr_player)
           in
-          if Hand.to_list new_hand = [] then
-            play_card (update_status game game.curr_player Won) card new_hand
+          let new_game = play_card game card new_hand in
+          (* Get updated hand of curr_player before moving on to next round *)
+          let curr_hand = List.nth new_game.hands curr_player in
+          if Hand.to_list curr_hand = [] then
+            update_status new_game curr_player Won
           else if List.length (Hand.to_list new_hand) = 1 then
-            play_card (update_status game game.curr_player Uno) card new_hand
+            update_status new_game curr_player Uno
           else play_card game card new_hand
         else raise (Invalid_argument "invalid move")
     else robot_turn game game.curr_player
