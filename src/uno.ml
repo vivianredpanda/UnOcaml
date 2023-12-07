@@ -17,6 +17,7 @@ module type Game = sig
   val get_curr_player : t -> int
   val get_hand : t -> int -> Hand.t
   val get_human_index : t -> int
+  val get_status : t -> int -> string
   val get_curr_status : t -> string
   val get_prev_status : t -> string
   val hands_to_list : t -> Card.card list list
@@ -58,6 +59,9 @@ module Game = struct
     | Normal -> "Normal"
     | Uno -> "Uno"
     | Won -> "Won"
+
+  let get_status (game : t) (player : int) : string =
+    status_to_string (List.nth game.statuses player)
 
   let get_curr_status (game : t) : string =
     status_to_string (List.nth game.statuses game.curr_player)
@@ -171,7 +175,7 @@ module Game = struct
     match card with
     | Number _ | Plus _ | Wildcard _ | Wildcard4 _ | Reverse _ ->
         if player = n - 1 then 0 else player + 1
-    | Skip _ -> (player + 1) mod n
+    | Skip _ -> (player + 2) mod n
 
   (* Given a list of drawn cards and a hand to add them to, returns the new hand
      with all the cards added. *)
@@ -209,31 +213,6 @@ module Game = struct
     | Wildcard4 _ -> handle_draw 4 new_hands next_idx next_hand new_deck
     | Plus (n, _) -> handle_draw n new_hands next_idx next_hand new_deck
 
-  let play_card (game : t) (card : Card.card) (new_hand : Hand.t) =
-    let player = game.curr_player in
-    let hands, new_deck = update_hands game player new_hand card in
-    let curr_player_index, hands, human_index =
-      if check_reverse card then
-        ( List.length game.hands - player - 1,
-          List.rev hands,
-          List.length hands - 1 )
-      else (player, hands, game.human_index)
-    in
-    let next_player = next_player card curr_player_index (List.length hands) in
-    (* TODO: remove this print stuff later *)
-    (* let rec hand_to_str (hnd : Card.card list) = match hnd with | [] -> "" |
-       h :: t -> Card.string_of_card h ^ " " ^ hand_to_str t in print_endline
-       ("after playing card " ^ Card.string_of_card card ^ " for new hand: " ^
-       hand_to_str (Hand.to_list (List.nth hands curr_player_index))); *)
-    {
-      curr_deck = new_deck;
-      curr_card = card;
-      curr_player = next_player;
-      hands;
-      human_index;
-      statuses = game.statuses;
-    }
-
   (* Updates a certain player's status based on the number of cards they have
      left and returns the game state. *)
   let update_status (game : t) (player : int) (s : status) : t =
@@ -247,6 +226,33 @@ module Game = struct
       hands = game.hands;
       human_index = game.human_index;
       statuses = new_statuses;
+    }
+
+  let play_card (game : t) (card : Card.card) (new_hand : Hand.t) =
+    let player = game.curr_player in
+    let hands, new_deck = update_hands game player new_hand card in
+    let curr_player_index, hands, human_index =
+      if check_reverse card then
+        ( List.length game.hands - player - 1,
+          List.rev hands,
+          List.length game.hands - game.human_index - 1 )
+      else (player, hands, game.human_index)
+    in
+    let game_statuses =
+      if List.length (Hand.to_list (List.nth hands curr_player_index)) = 1 then
+        update_status game curr_player_index Uno
+      else if List.length (Hand.to_list (List.nth hands curr_player_index)) = 0
+      then update_status game curr_player_index Won
+      else update_status game curr_player_index Normal
+    in
+    let next_player = next_player card curr_player_index (List.length hands) in
+    {
+      curr_deck = new_deck;
+      curr_card = card;
+      curr_player = next_player;
+      hands;
+      human_index;
+      statuses = game_statuses.statuses;
     }
 
   (* Given a game state, a player index, and a specific card color, counts the
@@ -369,7 +375,7 @@ module Game = struct
           curr_player = game.curr_player;
           hands = new_hands;
           human_index = game.human_index;
-          statuses = game.statuses;
+          statuses = (update_status game game.curr_player Normal).statuses;
         }
       else if card_input = "Pass" then
         let next_idx = (game.curr_player + 1) mod List.length game.hands in
@@ -381,6 +387,26 @@ module Game = struct
           human_index = game.human_index;
           statuses = game.statuses;
         }
+      else if card_input = "missed uno" then
+        let n = List.length (hands_to_list game) in
+        let prev_index =
+          match get_curr_card game with
+          | Skip _ -> (get_curr_player game - 2 + n) mod n
+          | _ -> (get_curr_player game - 1 + n) mod n
+        in
+        let new_hands, new_deck =
+          handle_draw 1 game.hands prev_index
+            (List.nth game.hands prev_index)
+            game.curr_deck
+        in
+        {
+          curr_deck = new_deck;
+          curr_card = game.curr_card;
+          curr_player = game.curr_player;
+          hands = new_hands;
+          human_index = game.human_index;
+          statuses = (update_status game game.curr_player Normal).statuses;
+        }
       else
         let card = Card.to_card card_input in
         let curr_player = game.curr_player in
@@ -388,14 +414,7 @@ module Game = struct
           let new_hand =
             Hand.play_card card (List.nth game.hands curr_player)
           in
-          let new_game = play_card game card new_hand in
-          (* Get updated hand of curr_player before moving on to next round *)
-          let curr_hand = List.nth new_game.hands curr_player in
-          if Hand.to_list curr_hand = [] then
-            update_status new_game curr_player Won
-          else if List.length (Hand.to_list new_hand) = 1 then
-            update_status new_game curr_player Uno
-          else play_card game card new_hand
+          play_card game card new_hand
         else raise (Invalid_argument "invalid move")
     else robot_turn game game.curr_player
 end

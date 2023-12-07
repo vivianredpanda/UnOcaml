@@ -28,6 +28,9 @@ module type Game = sig
   val get_human_index : t -> int
   (** Return the index of the human player within the list of hands *)
 
+  val get_status : t -> int -> string
+  (** Given a certain player's index, returns that player's status. *)
+
   val get_curr_status : t -> string
   (** Given a current game state, returns the current player's status. Requires
       there is at least one player in the game. *)
