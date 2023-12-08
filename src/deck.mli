@@ -18,7 +18,7 @@ module type Deck = sig
 
   val draw : t -> Card.Card.card * t
   (** Draw a card from the deck. Returns the card drawn and the updated deck.
-      Requires the given deck is non-empty. *)
+      Raises Invalid_argument if the given deck is empty. *)
 
   val draw_n : t -> int -> t * Card.Card.card list
   (** Draw n cards from the deck. Returns a list of the cards drawn and the

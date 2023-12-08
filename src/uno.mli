@@ -26,18 +26,21 @@ module type Game = sig
   (** Return hand of a certain indexed player. *)
 
   val get_human_index : t -> int
-  (** Return the index of the human player within the list of hands *)
+  (** Return the index of the human player within the list of hands. Raises
+      Invalid_argument if there is not at least one player in the game. *)
 
   val get_status : t -> int -> string
-  (** Given a certain player's index, returns that player's status. *)
+  (** Given a certain player's index, returns that player's status. Raises
+      Invalid_argument if the player index is invalid. *)
 
   val get_curr_status : t -> string
-  (** Given a current game state, returns the current player's status. Requires
-      there is at least one player in the game. *)
+  (** Given a current game state, returns the current player's status. Raises
+      Invalid_argument if there is not at least one player in the game. *)
 
   val get_prev_status : t -> string
   (** Given a current game state, returns the previous player's status
-      (determines previous player index using game's curr_player field). *)
+      (determines previous player index using game's curr_player field). Raises
+      Invalid_argument if there is not at least one player in the game.*)
 
   val hands_to_list : t -> Card.card list list
   (** Given a current game state, returns all the players' hands in the form of
@@ -59,7 +62,8 @@ module type Game = sig
       Invalid_argument if the card to play is not valid by the rules of Uno. *)
 
   val handle_play : t -> bool -> string -> t
-  (** Progress the game based on a user's move. *)
+  (** [handle_play g b c] progresses the game based on a user's move. Raises
+      Invalid_argument if [c] is [""], ["Any Wildcard"], or ["Any Wildcard4"]. *)
 
   val robot_turn : t -> int -> t
   (** Given a current game state and the index of the current (robot) player,

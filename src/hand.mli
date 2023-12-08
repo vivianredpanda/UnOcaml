@@ -15,8 +15,7 @@ module type Hand = sig
      the given card does not exist in the current deck *)
 
   val of_list : Card.Card.card list -> t
-  (* Takes in a list of cards and returns it as a Hand. Raises Invalid_argument
-     if the list does not contain 7 cards. *)
+  (* Takes in a list of cards and returns it as a Hand. *)
 
   val to_list : t -> Card.Card.card list
   (* Takes in a Hand of cards and returns it as a list of cards. *)

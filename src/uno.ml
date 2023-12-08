@@ -46,7 +46,11 @@ module Game = struct
   let get_deck (game : t) : Deck.t = game.curr_deck
   let get_curr_card (game : t) : Card.card = game.curr_card
   let get_curr_player (game : t) : int = game.curr_player
-  let get_human_index (game : t) : int = game.human_index
+
+  let get_human_index (game : t) : int =
+    match List.length game.hands with
+    | 0 -> raise (Invalid_argument "zero players in the game")
+    | _ -> game.human_index
 
   let get_hand (game : t) (player_num : int) : Hand.t =
     let hands = game.hands in
@@ -61,16 +65,23 @@ module Game = struct
     | Won -> "Won"
 
   let get_status (game : t) (player : int) : string =
-    status_to_string (List.nth game.statuses player)
+    if player < List.length game.hands then
+      status_to_string (List.nth game.statuses player)
+    else raise (Invalid_argument "invalid player number")
 
   let get_curr_status (game : t) : string =
-    status_to_string (List.nth game.statuses game.curr_player)
+    if List.length game.hands > 0 then
+      status_to_string (List.nth game.statuses game.curr_player)
+    else raise (Invalid_argument "zero players in the game")
 
   let get_prev_status (game : t) : string =
     let num_players = List.length game.hands in
-    let curr_idx = game.curr_player in
-    let prev_idx = if curr_idx = 0 then num_players - 1 else curr_idx - 1 in
-    status_to_string (List.nth game.statuses prev_idx)
+    match num_players with
+    | 0 -> raise (Invalid_argument "zero players in the game")
+    | num_players ->
+        let curr_idx = game.curr_player in
+        let prev_idx = if curr_idx = 0 then num_players - 1 else curr_idx - 1 in
+        status_to_string (List.nth game.statuses prev_idx)
 
   let hands_to_list (game : t) : Card.card list list =
     let rec to_list_list hands =
@@ -193,6 +204,9 @@ module Game = struct
     let new_hand = add_to_hand drawn_cards hand in
     (new_deck, new_hand)
 
+  (* Returns the list of hands of all the players based on the card played and
+     the updated deck based on a number of cards to add to the next player's
+     deck. *)
   let handle_draw (n : int) (hands : Hand.t list) (player : int) (hand : Hand.t)
       (deck : Deck.t) : Hand.t list * Deck.t =
     let new_deck, new_hand = draw_n_cards n hand deck in

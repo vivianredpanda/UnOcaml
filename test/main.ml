@@ -5,8 +5,14 @@
    randomness. For example, we were unable to fully test Uno.play_card because
    it involves playing a card from a hand on top of a randomly drawn card from
    the deck. For any functionality we could not write unit tests for, we tested
-   in the terminal by playing the game. We believe our test suite demonstrates
-   correctness of our system because ______________bisect?____________ *)
+   in the terminal by playing the game. We also added a 'debug' option to use
+   when playing the game to be able to see all the cards for the other players
+   to check that the background players are playing correctly. We believe our
+   test suite demonstrates correctness of our system because we used Bisect to
+   check our coverage. The card, deck, and hand modules all had over 90%
+   coverage, and although Uno.ml did not have very high coverage, it was
+   thoroughly tested in terminal. *)
+
 open OUnit2
 open Unocaml
 open Deck
@@ -130,11 +136,14 @@ let card_tests =
     to_card_color_test "to_card any card" "any" "Wildcard4";
     to_card_color_test "to_card yellow card" "yellow" "Reverse";
     to_card_color_test "to_card blue card" "Blue" "Skip";
+    to_card_color_test "to_card green card" "Green" "Plus 2";
     to_card_type_test "to_card yellow 4" "yellow" "4";
     to_card_type_test "to_card red 8" "Red" "8";
+    to_card_type_test "to_card green 3" "Green" "3";
     string_of_card_test "string_of_card Yellow 4" "Yellow 4";
     string_of_card_test "string_of_card Any Wildcard" "Any Wildcard";
     string_of_card_test "string_of_card green Reverse" "Green Reverse";
+    string_of_card_test "string_of_card red plus 2" "Red Plus 2";
   ]
 
 let deck1 =
@@ -164,6 +173,8 @@ let deck5 =
       Card.to_card "Red 4";
       Card.to_card "Yellow 3";
     ]
+
+let deck_empty = Deck.of_list []
 
 let remove_test out in1 in2 _ =
   assert_equal
@@ -198,6 +209,15 @@ let draw_test name out deck =
   name >:: fun _ ->
   assert_equal ~printer:string_of_int out (Deck.size (snd (Deck.draw deck)))
 
+let draw_invalid_arg_test deck _ =
+  let exn = Invalid_argument "..." in
+  assert_raises
+    ~msg:
+      ("function: draw\ninput: %s"
+      ^ pp_list Card.string_of_card (Deck.to_list deck))
+    exn
+    (fun () -> try Deck.draw deck with Invalid_argument _ -> raise exn)
+
 let draw_n_deck_test name out deck n =
   name >:: fun _ ->
   assert_equal ~printer:string_of_int out (Deck.size (fst (Deck.draw_n deck n)))
@@ -206,6 +226,9 @@ let draw_n_hand_test name out deck n =
   name >:: fun _ ->
   assert_equal ~printer:string_of_int out
     (List.length (snd (Deck.draw_n deck n)))
+
+let is_empty_test name out deck =
+  name >:: fun _ -> assert_equal ~printer:pp_bool out (Deck.is_empty deck)
 
 let deck_tests =
   [
@@ -244,14 +267,18 @@ let deck_tests =
           number_card deck1;
     "remove card that does not exist in list"
     >:: remove_invalid_arg_test plus4_card deck1;
+    "remove card that from an empty list"
+    >:: remove_invalid_arg_test plus4_card deck_empty;
     "deal cards from beginning deck" >:: deal_test 101 deck2;
     "deal cards from small deck" >:: deal_test 0 deck1;
     "deal cards from deck size less than 7"
     >:: deal_test 107 (snd (Deck.draw deck1));
+    "deal cards from empty deck" >:: deal_test 101 deck_empty;
     int_test "draw card from deck of one card" 5
       (option_value (Card.get_number (fst (Deck.draw deck3))));
     draw_test "return deck after drawing from deck of one card" 0 deck3;
     draw_test "draw from full deck" 107 deck2;
+    "draw from empty deck" >:: draw_invalid_arg_test deck_empty;
     draw_n_deck_test "return deck after drawing 0 cards" 108 deck2 0;
     draw_n_hand_test "return list of cards after drawing 0 cards" 0 deck2 0;
     draw_n_deck_test "return deck after drawing from small deck" 0 deck4 4;
@@ -262,6 +289,9 @@ let deck_tests =
       deck2 10;
     int_test "draw_n draw one card from deck" 5
       (option_value (Card.get_number (List.hd (snd (Deck.draw_n deck4 1)))));
+    is_empty_test "is_empty empty deck" true deck_empty;
+    is_empty_test "is_empty 1-element deck" false deck3;
+    is_empty_test "is_empty full deck" false deck1;
   ]
 
 let hand1 =
@@ -458,14 +488,15 @@ let play_card_test name out n f1 f2 f3 =
     |> f1 |> f2 |> f3)
 
 let get_hand_failure_test in1 in2 _ =
-  let exn = Failure "..." in
+  let exn = Invalid_argument "..." in
   assert_raises
     ~msg:
       (Printf.sprintf "function: get_hand\ninput: %s %s" (string_of_int in1)
          (string_of_int in2))
     exn
     (fun () ->
-      try Game.get_hand (Game.build in1) in2 with Failure _ -> raise exn)
+      try Game.get_hand (Game.build in1) in2
+      with Invalid_argument _ -> raise exn)
 
 let get_hand_test name out n p =
   name >:: fun _ ->
@@ -473,15 +504,51 @@ let get_hand_test name out n p =
   assert_equal ~printer:string_of_int out
     (Game.get_hand game p |> Hand.to_list |> List.length)
 
+let get_status_test name out n player =
+  name >:: fun _ ->
+  let game = Game.build n in
+  assert_equal ~printer:pp_string out (Game.get_status game player)
+
+let get_status_invalid_arg_test n player _ =
+  let exn = Invalid_argument "..." in
+  let game = Game.build n in
+  assert_raises
+    ~msg:
+      (Printf.sprintf "function: get_status\ninput: %s %s" (string_of_int n)
+         (string_of_int player))
+    exn
+    (fun () ->
+      try Game.get_status game player with Invalid_argument _ -> raise exn)
+
 let get_curr_status_test name out n =
   name >:: fun _ ->
   let game = Game.build n in
   assert_equal ~printer:pp_string out (Game.get_curr_status game)
 
+let get_curr_status_invalid_arg_test n _ =
+  let exn = Invalid_argument "..." in
+  let game = Game.build n in
+  assert_raises
+    ~msg:
+      (Printf.sprintf "function: get_curr_status\ninput: %s" (string_of_int n))
+    exn
+    (fun () ->
+      try Game.get_curr_status game with Invalid_argument _ -> raise exn)
+
 let get_prev_status_test name out n =
   name >:: fun _ ->
   let game = Game.build n in
   assert_equal ~printer:pp_string out (Game.get_prev_status game)
+
+let get_prev_status_invalid_arg_test n _ =
+  let exn = Invalid_argument "..." in
+  let game = Game.build n in
+  assert_raises
+    ~msg:
+      (Printf.sprintf "function: get_prev_status\ninput: %s" (string_of_int n))
+    exn
+    (fun () ->
+      try Game.get_prev_status game with Invalid_argument _ -> raise exn)
 
 let hands_to_list_test name n =
   name >:: fun _ ->
@@ -492,6 +559,33 @@ let check_play_test name out n card =
   name >:: fun _ ->
   let game = Game.build n in
   assert_equal ~printer:pp_bool out (Game.check_play game card)
+
+let get_human_index_test name out n =
+  name >:: fun _ ->
+  let game = Game.build n in
+  assert_equal ~printer:string_of_int out (Game.get_human_index game)
+
+let get_human_index_invalid_arg_test n _ =
+  let exn = Invalid_argument "..." in
+  let game = Game.build n in
+  assert_raises
+    ~msg:
+      (Printf.sprintf "function: get_human_index\ninput: %s" (string_of_int n))
+    exn
+    (fun () ->
+      try Game.get_human_index game with Invalid_argument _ -> raise exn)
+
+let handle_play_invalid_arg_test n is_human card_input _ =
+  let exn = Invalid_argument "..." in
+  let game = Game.build n in
+  assert_raises
+    ~msg:
+      (Printf.sprintf "function: handle_play\ninput: %s %s %s" (string_of_int n)
+         (string_of_bool is_human) card_input)
+    exn
+    (fun () ->
+      try Game.handle_play game is_human card_input
+      with Invalid_argument _ -> raise exn)
 
 let uno_tests =
   [
@@ -512,25 +606,42 @@ let uno_tests =
       "Normal" 3;
     get_curr_status_test "get status of newly dealt game with 1 player" "Normal"
       1;
+    "get_status of 0 player game" >:: get_curr_status_invalid_arg_test 0;
     get_prev_status_test "get prev status of newly dealt game with 3 players"
       "Normal" 3;
     get_prev_status_test "get prev status of newly dealt game with 2 players"
       "Normal" 1;
+    "get_prev_status of 0 player game" >:: get_prev_status_invalid_arg_test 0;
     hands_to_list_test "hands_to_list has 4 hands for a 4 player game" 4;
     hands_to_list_test "hands_to_list has 0 hands for a 0 player game" 0;
     hands_to_list_test "hands_to_list has 1 hand for a 1 player game" 1;
     play_card_test "play_card of first card does not change number of players" 3
       3 Game.hands_to_list List.length (( + ) 0);
-    (* cant test these because playing the card doesn't always work:
-       play_card_test "play_card increment player index by 1" 1 4
-       Game.get_curr_player (( + ) 0) (( + ) 0); play_card_test "play_card\n
-       remove 1 card from player 0 hand" 6 4 Game.hands_to_list List.hd
-       List.length; play_card_test "play_card does not change deck" 79 4
-       Game.get_deck Deck.size (( + ) 0);*)
     check_play_test "playing wildcard always valid" true 4
       (Card.to_card "Any Wildcard");
     check_play_test "playing wildcard4 always valid" true 3
       (Card.to_card "Yellow Wildcard4");
+    get_human_index_test "get_human_index new game with 1 player" 0 1;
+    get_human_index_test "get_human_index new game with 2 players" 0 2;
+    get_human_index_test "get_human_index new game with 4 player" 0 4;
+    get_status_test "get_status 1st player in 1 player game" "Normal" 1 0;
+    get_status_test "get_status 1st player in 4 player game" "Normal" 4 0;
+    get_status_test "get_status 2nd player in 4 player game" "Normal" 4 2;
+    get_status_test "get_status 4th player in 4 player game" "Normal" 4 3;
+    "get_status negative player index" >:: get_status_invalid_arg_test 1 (-1);
+    "get_status of player 1 in a 0 player game"
+    >:: get_status_invalid_arg_test 0 0;
+    "get_status of player 4 in a 3 player game"
+    >:: get_status_invalid_arg_test 3 3;
+    "get_status of player 6 in a 3 player game"
+    >:: get_status_invalid_arg_test 3 5;
+    "get_human_index of 0 player game" >:: get_human_index_invalid_arg_test 0;
+    "handle_play of human player with empty card input"
+    >:: handle_play_invalid_arg_test 3 true "";
+    "handle_play of human player with Any Wildcard input"
+    >:: handle_play_invalid_arg_test 3 true "Any Wildcard";
+    "handle_play of human player with Any Wildcard4 input"
+    >:: handle_play_invalid_arg_test 3 true "Any Wildcard4";
   ]
 
 let tests =

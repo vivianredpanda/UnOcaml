@@ -80,9 +80,12 @@ module Deck : Deck = struct
     | h :: t -> if h = card then t else h :: remove card t
 
   let draw (deck : t) =
-    Random.self_init ();
-    let card = List.nth deck (Random.int (List.length deck)) in
-    (card, remove card deck)
+    match deck with
+    | [] -> raise (Invalid_argument "empty input deck")
+    | deck ->
+        Random.self_init ();
+        let card = List.nth deck (Random.int (List.length deck)) in
+        (card, remove card deck)
 
   (** Given a list of cards [lst], a deck of cards [deck], and a counter [n],
       removes [n] cards from [deck]. Returns a pair of the updated deck and a
