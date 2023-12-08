@@ -1,13 +1,13 @@
 open Hand
-(** A model that can progress the game based on a single move. *)
-
 open Card
 open Deck
 
 (** A model that keeps track of and updates the state of the game. *)
 module type Game = sig
   type t
+  (** Representation type of the model. *)
 
+  (** Type representing the status of a player in the game. *)
   type status =
     | Normal
     | Uno
@@ -71,3 +71,4 @@ module type Game = sig
 end
 
 module Game : Game
+(** A game of uno. *)

@@ -1,4 +1,6 @@
+(** An uno card that has both a color and a card type. *)
 module Card = struct
+  (** Represents the color of the card. *)
   type color =
     | Red
     | Blue
@@ -6,6 +8,7 @@ module Card = struct
     | Yellow
     | Any
 
+  (** Represents the type of the card. *)
   type card =
     | Number of int * color
     | Reverse of color

@@ -2,8 +2,7 @@ open Hand
 open Card
 open Deck
 
-(* game file *)
-
+(** A model that keeps track of and updates the state of the game. *)
 module type Game = sig
   type t
 
@@ -28,6 +27,7 @@ module type Game = sig
   val robot_turn : t -> int -> t
 end
 
+(** A game of uno. *)
 module Game = struct
   type status =
     | Normal

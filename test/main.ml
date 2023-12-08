@@ -1,16 +1,16 @@
-(* Our approach to testing was to create unit tests for all of the functions
-   that were possible to test. We created some of these unit tests along the
-   way, when coding a new function, but we also went back to add more tests
-   later. In the test suite, we omitted testing any functionality that involved
-   randomness. For example, we were unable to fully test Uno.play_card because
-   it involves playing a card from a hand on top of a randomly drawn card from
-   the deck. For any functionality we could not write unit tests for, we tested
-   in the terminal by playing the game. We also added a 'debug' option to use
-   when playing the game to be able to see all the cards for the other players
-   to check that the background players are playing correctly. We believe our
-   test suite demonstrates correctness of our system because we used Bisect to
-   check our coverage. The card, deck, and hand modules all had over 90%
-   coverage, and although Uno.ml did not have very high coverage, it was
+(* TEST PLAN: Our approach to testing was to create unit tests for all of the
+   functions that were possible to test. We created some of these unit tests
+   along the way, when coding a new function, but we also went back to add more
+   tests later. In the test suite, we omitted testing any functionality that
+   involved randomness. For example, we were unable to fully test Uno.play_card
+   because it involves playing a card from a hand on top of a randomly drawn
+   card from the deck. For any functionality we could not write unit tests for,
+   we tested in the terminal by playing the game. We also added a 'debug' option
+   to use when playing the game to be able to see all the cards for the other
+   players to check that the background players are playing correctly. We
+   believe our test suite demonstrates correctness of our system because we used
+   Bisect to check our coverage. The card, deck, and hand modules all had over
+   90% coverage, and although Uno.ml did not have very high coverage, it was
    thoroughly tested in terminal. *)
 
 open OUnit2

@@ -8,6 +8,7 @@
 open Card
 open Deck
 
+(** The signature of a Hand of 7 cards *)
 module type Hand = sig
   type t
 
@@ -18,6 +19,7 @@ module type Hand = sig
   val check_valid_card : Card.card -> t -> bool
 end
 
+(** Hand that consists of items of type card *)
 module Hand : Hand = struct
   type t = Card.card list
 

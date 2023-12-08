@@ -5,6 +5,7 @@
 
 open Card
 
+(** The signature of a deck of cards *)
 module type Deck = sig
   type t
 
@@ -19,6 +20,7 @@ module type Deck = sig
   val size : t -> int
 end
 
+(** Deck that consists of items of type card. *)
 module Deck : Deck = struct
   type t = Card.card list
 
