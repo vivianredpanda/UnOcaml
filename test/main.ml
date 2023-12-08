@@ -312,6 +312,17 @@ let hand1 =
       unused_wildcard4;
     ]
 
+let hand2 =
+  Hand.of_list
+    [
+      Card.to_card "Green 8";
+      Card.to_card "Red 2";
+      Card.to_card "Yellow 8";
+      Card.to_card "Green 7";
+    ]
+
+let hand_empty = Hand.of_list []
+
 let check_valid_card_test out in1 in2 _ =
   assert_equal ~printer:string_of_bool
     ~msg:
@@ -347,6 +358,48 @@ let play_card_invalid_arg_test in1 in2 _ =
     exn
     (fun () ->
       try Hand.play_card in1 in2 with Invalid_argument _ -> raise exn)
+
+let get_number_test name out h n =
+  name >:: fun _ ->
+  assert_equal ~cmp:cmp_bag_like_lists
+    ~printer:(pp_list Card.string_of_card)
+    out
+    (Hand.to_list (Hand.get_number h n))
+
+let get_color_test name out h c =
+  name >:: fun _ ->
+  assert_equal ~cmp:cmp_bag_like_lists
+    ~printer:(pp_list Card.string_of_card)
+    out
+    (Hand.to_list (Hand.get_color h c))
+
+let get_skip_test name out h c =
+  name >:: fun _ ->
+  assert_equal ~cmp:cmp_bag_like_lists
+    ~printer:(pp_list Card.string_of_card)
+    out
+    (Hand.to_list (Hand.get_skip h c))
+
+let get_reverse_test name out h c =
+  name >:: fun _ ->
+  assert_equal ~cmp:cmp_bag_like_lists
+    ~printer:(pp_list Card.string_of_card)
+    out
+    (Hand.to_list (Hand.get_reverse h c))
+
+let get_plus_test name out h c =
+  name >:: fun _ ->
+  assert_equal ~cmp:cmp_bag_like_lists
+    ~printer:(pp_list Card.string_of_card)
+    out
+    (Hand.to_list (Hand.get_plus h c))
+
+let get_wild_test name out h =
+  name >:: fun _ ->
+  assert_equal ~cmp:cmp_bag_like_lists
+    ~printer:(pp_list Card.string_of_card)
+    out
+    (Hand.to_list (Hand.get_wild h))
 
 let hand_tests =
   [
@@ -466,6 +519,42 @@ let hand_tests =
           (Hand.add_card (Card.to_card "Yellow Wildcard") hand1);
     "play_card non-existing card in list"
     >:: play_card_invalid_arg_test (Card.to_card "Green Skip") hand1;
+    get_number_test "get_number empty hand" [] hand_empty 3;
+    get_number_test "get_number hand without the number" [] hand1 9;
+    get_number_test "get_number hand with the number"
+      [ Card.to_card "Green 8" ]
+      hand1 8;
+    get_number_test "get_number hand with multiple occurences of the number"
+      [ Card.to_card "Green 8"; Card.to_card "Yellow 8" ]
+      hand2 8;
+    get_color_test "get_color empty hand" [] hand_empty Blue;
+    get_color_test "get_color color not in hand" [] hand2 Blue;
+    get_color_test "get_color color in hand once" [ reverse_card ] hand1 Yellow;
+    get_color_test "get_color color in hand twice, plus2 cards"
+      [ plus2_card; plus2_card ] hand1 Blue;
+    get_color_test "get_color color in hand twice, skip & number cards"
+      [ skip_card; Card.to_card "Red 5" ]
+      hand1 Red;
+    get_color_test "get_color color in hand twice, number cards"
+      [ number_card; Card.to_card "Green 8" ]
+      hand1 Green;
+    get_skip_test "get_skip empty hand" [] hand_empty Yellow;
+    get_skip_test "get_skip no skips in hand" [] hand2 Yellow;
+    get_skip_test "get_skip 1 occurence" [ skip_card ] hand1 Red;
+    get_skip_test "get_skip skip in hand of wrong color" [] hand1 Green;
+    get_reverse_test "get_reverse empty hand" [] hand_empty Yellow;
+    get_reverse_test "get_reverse no reverses in hand" [] hand2 Yellow;
+    get_reverse_test "get_reverse 1 occurence" [ reverse_card ] hand1 Yellow;
+    get_reverse_test "get_reverse reverse in hand of wrong color" [] hand1 Green;
+    get_plus_test "get_plus empty hand" [] hand_empty Red;
+    get_plus_test "get_plus no plus in hand" [] hand2 Red;
+    get_plus_test "get_plus 2 occurences" [ plus2_card; plus2_card ] hand1 Blue;
+    get_plus_test "get_plus plus in hand of wrong color" [] hand1 Green;
+    get_wild_test "get_wild empty hand" [] hand_empty;
+    get_wild_test "get_wild no wilds in hand" [] hand2;
+    get_wild_test "get_wild 2 occurences"
+      [ unused_wildcard; unused_wildcard4 ]
+      hand1;
   ]
 
 let build_deck_test name out n =
