@@ -17,6 +17,12 @@ module type Hand = sig
   val of_list : Card.card list -> t
   val to_list : t -> Card.card list
   val check_valid_card : Card.card -> t -> bool
+  val get_number : t -> int -> t
+  val get_color : t -> Card.color -> t
+  val get_skip : t -> Card.color -> t
+  val get_reverse : t -> Card.color -> t
+  val get_plus : t -> Card.color -> t
+  val get_wild : t -> t
 end
 
 (** Hand that consists of items of type card *)
@@ -52,4 +58,74 @@ module Hand : Hand = struct
 
   let of_list (lst : Card.card list) : t = lst
   let to_list (h : t) : Card.card list = h
+
+  let get_number (h : t) (num : int) : t =
+    let lst =
+      List.filter
+        (fun c ->
+          match c with
+          | Card.Number (n, _) -> n = num
+          | _ -> false)
+        (to_list h)
+    in
+    of_list lst
+
+  let get_color (h : t) (col : Card.color) : t =
+    let lst =
+      List.filter
+        (fun c ->
+          match c with
+          | Card.Number (_, co) -> col = co
+          | Card.Reverse co -> col = co
+          | Card.Plus (_, co) -> col = co
+          | Card.Skip co -> col = co
+          | Card.Wildcard co -> col = co
+          | Card.Wildcard4 co -> col = co)
+        (to_list h)
+    in
+    of_list lst
+
+  let get_skip (h : t) (col : Card.color) : t =
+    let lst =
+      List.filter
+        (fun c ->
+          match c with
+          | Card.Skip co -> col = co
+          | _ -> false)
+        (to_list h)
+    in
+    of_list lst
+
+  let get_reverse (h : t) (col : Card.color) : t =
+    let lst =
+      List.filter
+        (fun c ->
+          match c with
+          | Card.Reverse co -> col = co
+          | _ -> false)
+        (to_list h)
+    in
+    of_list lst
+
+  let get_plus (h : t) (col : Card.color) : t =
+    let lst =
+      List.filter
+        (fun c ->
+          match c with
+          | Card.Plus (_, co) -> col = co
+          | _ -> false)
+        (to_list h)
+    in
+    of_list lst
+
+  let get_wild (h : t) : t =
+    let lst =
+      List.filter
+        (fun c ->
+          match c with
+          | Card.Wildcard _ | Card.Wildcard4 _ -> true
+          | _ -> false)
+        (to_list h)
+    in
+    of_list lst
 end

@@ -22,6 +22,29 @@ module type Hand = sig
 
   val check_valid_card : Card.Card.card -> t -> bool
   (** Takes in a card and a hand and checks if the card is in the hand. *)
+
+  val get_number : t -> int -> t
+  (** Takes in a hand and counts the number of cards that have the same number
+      as the one passed in. *)
+
+  val get_color : t -> Card.Card.color -> t
+  (** Takes in a hand and counts the number of cards that have the same color as
+      the one passed in. *)
+
+  val get_skip : t -> Card.Card.color -> t
+  (** Takes in a hand and counts the number of skip cards with the same color as
+      the one passed in. *)
+
+  val get_reverse : t -> Card.Card.color -> t
+  (** Takes in a hand and counts the number of reverse cards that have the same
+      color as the one passed in. *)
+
+  val get_plus : t -> Card.Card.color -> t
+  (** Takes in a hand and counts the number of plus 2 cards that have the same
+      color as the one passed in. *)
+
+  val get_wild : t -> t
+  (** Takes in a hand and counts the number of wildcards or wildcard4's. *)
 end
 
 module Hand : Hand
