@@ -129,7 +129,21 @@ let () =
                           Game.handle_play !game_state
                             (curr_player = Game.get_human_index !game_state)
                             d_user_in;
-                        print_endline "Nice move!")
+                        print_endline "Nice move!";
+                        if Game.get_prev_status !game_state = "Uno" then begin
+                          print_endline "Anything to say?";
+                          print_string "> ";
+                          let if_uno = read_line () in
+                          match String.lowercase_ascii if_uno with
+                          | "uno" -> print_endline "UnOCaml"
+                          | _ ->
+                              print_endline "Missed UnOCaml. Drawing card.";
+                              game_state :=
+                                Game.handle_play !game_state true "missed uno"
+                          (*TO_DO : add in uno.ml handel_play this option and
+                            itll draw card for prev player & update status back
+                            to Normal*)
+                        end)
               in
               handle_draw_input ()
           | _ -> (
@@ -163,9 +177,6 @@ let () =
                             print_endline "Missed UnOCaml. Drawing card.";
                             game_state :=
                               Game.handle_play !game_state true "missed uno"
-                        (*TO_DO : add in uno.ml handel_play this option and itll
-                          draw card for prev player & update status back to
-                          Normal*)
                       end)
               | exception Failure f ->
                   print_endline
