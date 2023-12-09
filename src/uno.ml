@@ -284,10 +284,6 @@ module Game = struct
      Wildcard4) chooses a color for the robot to play based on most common
      colors in their hand. *)
   let robot_smart_wildcard (game : t) (player : int) (card : Card.card) : t =
-    (* TODO: test *)
-    (* do some math -> choose wildcard color based on most common *)
-    (* later could modify to account for just number of normal cards - exclude
-       skips, +2's, etc *)
     let num_red = count_color game player Red in
     let num_blue = count_color game player Blue in
     let num_yellow = count_color game player Yellow in
@@ -348,6 +344,12 @@ module Game = struct
           robot_smart_wildcard new_game player next_card
       | _ -> robo_play_card new_game player next_card
 
+  let play_rand_robo_card (game : t) (player : int) (next_card : Card.card) =
+    match next_card with
+    | Number _ | Skip _ | Reverse _ | Plus _ ->
+        robo_play_card game player next_card
+    | Wildcard _ | Wildcard4 _ -> robot_smart_wildcard game player next_card
+
   (* For a robot's turn, plays a robot card by drawing a random card from their
      hand and playing it *)
   (* TODO: make this into smaller sub methods *)
@@ -393,10 +395,12 @@ module Game = struct
         else if List.length all_wildcards > 0 then
           let wildcard = List.nth all_wildcards 0 in
           robo_play_card game player wildcard
-        else if List.length same_col_cards <= 1 then
+        else if
+          List.length same_col_cards <= 1 && List.length same_num_cards > 0
+        then
           let same_num_card = List.nth same_num_cards 0 in
           robo_play_card game player same_num_card
-        else failwith ""
+        else play_rand_robo_card game player next_card
       else
         (* TODO: next check how many cards of the curr card color are left *)
         (* look through valid cards: get the count for number of cards of the
@@ -409,10 +413,7 @@ module Game = struct
         (* also ai for reverse - check other players' number of cards *)
         (* same for skip or plus - we can prioritize playing a skip if estimate
            if estimate low for next player *)
-        match next_card with
-        | Number _ | Skip _ | Reverse _ | Plus _ ->
-            robo_play_card game player next_card
-        | Wildcard _ | Wildcard4 _ -> robot_smart_wildcard game player next_card
+        play_rand_robo_card game player next_card
 
   let handle_play (game : t) (is_human : bool) (card_input : string) : t =
     if is_human then
