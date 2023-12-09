@@ -349,6 +349,7 @@ module Game = struct
     let new_valid_cards =
       List.filter (fun c -> check_play new_game c) new_curr_hand_lst
     in
+    (* If no valid cards: *)
     if List.length new_valid_cards = 0 then
       let next_idx = (new_game.curr_player + 1) mod List.length new_hands in
       {
@@ -360,7 +361,7 @@ module Game = struct
         statuses = new_game.statuses;
       }
     else
-      (* only have one card to play - play it *)
+      (* At least one valid card: *)
       let next_card = List.hd new_valid_cards in
       match next_card with
       | Wildcard _ | Wildcard4 _ ->
@@ -374,6 +375,46 @@ module Game = struct
     | Number _ | Skip _ | Reverse _ | Plus _ ->
         robo_play_card game player next_card
     | Wildcard _ | Wildcard4 _ -> robot_smart_wildcard game player next_card
+
+  (* If the next player has one card left, prioritizes playing different types
+     of cards - first plus, then skip, then reverse (if more than 2 players) and
+     then wildcards. *)
+  let offensive_robot (game : t) (player : int) same_color_cards same_num_cards
+      same_color_plus same_color_skip same_color_reverse all_wildcards
+      all_wildcard4s next_card =
+    if List.length same_color_plus > 0 then
+      let plus_card = List.nth same_color_plus 0 in
+      robo_play_card game player plus_card
+    else if List.length same_color_skip > 0 then
+      let skip_card = List.nth same_color_skip 0 in
+      robo_play_card game player skip_card
+    else if List.length same_color_reverse > 0 && List.length game.hands > 2
+    then
+      let reverse_card = List.nth same_color_reverse 0 in
+      robo_play_card game player reverse_card
+    else if List.length all_wildcard4s > 0 then
+      let wildcard4 = List.nth all_wildcard4s 0 in
+      robot_smart_wildcard game player wildcard4
+    else if List.length all_wildcards > 0 then
+      let wildcard = List.nth all_wildcards 0 in
+      robot_smart_wildcard game player wildcard
+    else if List.length same_color_cards <= 1 && List.length same_num_cards > 0
+    then
+      let same_num_card = List.nth same_num_cards 0 in
+      robo_play_card game player same_num_card
+    else play_rand_robo_card game player next_card
+
+  (* If only 2 players, prioritize first skipping, then adding cards. *)
+  let two_player_robo_response (game : t) (player : int)
+      (same_color_plus : Card.card list) (same_color_skip : Card.card list)
+      (next_card : Card.card) : t =
+    if List.length same_color_skip > 0 then
+      let skip_card = List.nth same_color_skip 0 in
+      robo_play_card game player skip_card
+    else if List.length same_color_plus > 0 then
+      let plus_card = List.nth same_color_plus 0 in
+      robo_play_card game player plus_card
+    else play_rand_robo_card game player next_card
 
   (* For a robot's turn, plays a robot card by drawing a random card from their
      hand and playing it based on "smart" uno rules. *)
@@ -392,70 +433,97 @@ module Game = struct
         | Card.Number (num, _) -> Hand.to_list (Hand.get_number valid_hand num)
         | _ -> []
       in
-      let same_col_cards =
+      let same_color_cards =
         Hand.to_list (Hand.get_color valid_hand curr_color)
       in
-      let same_col_skip = Hand.to_list (Hand.get_skip valid_hand curr_color) in
-      let same_col_reverse =
+      let same_color_skip =
+        Hand.to_list (Hand.get_skip valid_hand curr_color)
+      in
+      let same_color_reverse =
         Hand.to_list (Hand.get_reverse valid_hand curr_color)
       in
-      let same_col_plus = Hand.to_list (Hand.get_plus valid_hand curr_color) in
+      let same_color_plus =
+        Hand.to_list (Hand.get_plus valid_hand curr_color)
+      in
       let all_wildcards = Hand.to_list (Hand.get_wild valid_hand) in
       let all_wildcard4s = Hand.to_list (Hand.get_wild4 valid_hand) in
       let next_status =
         List.nth game.statuses
           (next_player (Wildcard Any) player (List.length game.hands))
       in
-      (* If the next player has one card left, prioritizes playing different
-         types of cards - first plus, then skip, then reverse (if more than 2
-         players) and then wildcards. *)
-      (* The robot is "smart," so its estimates will be allowed to be more
-         accurate *)
+
       if next_status = Uno || estimate_next_num_cards game player 6 < 3 then
-        if List.length same_col_plus > 0 then
-          let plus_card = List.nth same_col_plus 0 in
-          robo_play_card game player plus_card
-        else if List.length same_col_skip > 0 then
-          let skip_card = List.nth same_col_skip 0 in
-          robo_play_card game player skip_card
-        else if List.length same_col_reverse > 0 && List.length game.hands > 2
-        then
-          let reverse_card = List.nth same_col_reverse 0 in
-          robo_play_card game player reverse_card
-        else if List.length all_wildcard4s > 0 then
-          let wildcard4 = List.nth all_wildcard4s 0 in
-          robot_smart_wildcard game player wildcard4
-        else if List.length all_wildcards > 0 then
-          let wildcard = List.nth all_wildcards 0 in
-          robot_smart_wildcard game player wildcard
-        else if
-          List.length same_col_cards <= 1 && List.length same_num_cards > 0
-        then
-          let same_num_card = List.nth same_num_cards 0 in
-          robo_play_card game player same_num_card
-        else play_rand_robo_card game player next_card
-      else if List.length same_col_cards <= 1 && List.length same_num_cards > 0
+        offensive_robot game player same_color_cards same_num_cards
+          same_color_plus same_color_skip same_color_reverse all_wildcards
+          all_wildcard4s next_card
+      else if
+        List.length same_color_cards <= 1 && List.length same_num_cards > 0
       then
         let same_num_card = List.nth same_num_cards 0 in
         robo_play_card game player same_num_card
       else if List.length game.hands = 2 then
-        (* if only 2 players, prioritize skipping then adding cards *)
-        if List.length same_col_skip > 0 then
-          let skip_card = List.nth same_col_skip 0 in
-          robo_play_card game player skip_card
-        else if List.length same_col_plus > 0 then
-          let plus_card = List.nth same_col_plus 0 in
-          robo_play_card game player plus_card
-        else play_rand_robo_card game player next_card
+        two_player_robo_response game player same_color_plus same_color_skip
+          next_card
       else
-        (* If the curr card is a +2, prioritze stacking them *)
         match game.curr_card with
         | Card.(Plus (2, c)) ->
-            if List.length same_col_plus > 0 then
-              let plus_card = List.nth same_col_plus 0 in
+            if List.length same_color_plus > 0 then
+              let plus_card = List.nth same_color_plus 0 in
               robo_play_card game player plus_card
             else play_rand_robo_card game player next_card
         | _ -> play_rand_robo_card game player next_card
+
+  (* If the user inputs draw, then add a card to their hand. *)
+  let user_draw (game : t) : t =
+    let new_hands, new_deck =
+      handle_draw 1 game.hands game.curr_player
+        (List.nth game.hands game.curr_player)
+        game.curr_deck
+    in
+    {
+      curr_deck = new_deck;
+      curr_card = game.curr_card;
+      curr_player = game.curr_player;
+      hands = new_hands;
+      human_index = game.human_index;
+      statuses = (update_status game game.curr_player Normal).statuses;
+    }
+
+  (* If a user inputs pass, skips to the next player without changing hands or
+     deck. *)
+  let user_pass (game : t) : t =
+    let next_idx = (game.curr_player + 1) mod List.length game.hands in
+    {
+      curr_deck = game.curr_deck;
+      curr_card = game.curr_card;
+      curr_player = next_idx;
+      hands = game.hands;
+      human_index = game.human_index;
+      statuses = game.statuses;
+    }
+
+  (* If the user was at one card and did not input uno, adds a card to their
+     hand. *)
+  let user_missed_uno (game : t) =
+    let n = List.length (hands_to_list game) in
+    let prev_index =
+      match get_curr_card game with
+      | Skip _ -> (get_curr_player game - 2 + n) mod n
+      | _ -> (get_curr_player game - 1 + n) mod n
+    in
+    let new_hands, new_deck =
+      handle_draw 1 game.hands prev_index
+        (List.nth game.hands prev_index)
+        game.curr_deck
+    in
+    {
+      curr_deck = new_deck;
+      curr_card = game.curr_card;
+      curr_player = game.curr_player;
+      hands = new_hands;
+      human_index = game.human_index;
+      statuses = (update_status game game.curr_player Normal).statuses;
+    }
 
   let handle_play (game : t) (is_human : bool) (card_input : string) : t =
     if is_human then
@@ -464,50 +532,9 @@ module Game = struct
         raise (Invalid_argument "need to specify wildcard color")
       else if card_input = "Any Wildcard4" then
         raise (Invalid_argument "need to specify wildcard4 color")
-      else if card_input = "Draw card" then
-        let new_hands, new_deck =
-          handle_draw 1 game.hands game.curr_player
-            (List.nth game.hands game.curr_player)
-            game.curr_deck
-        in
-        {
-          curr_deck = new_deck;
-          curr_card = game.curr_card;
-          curr_player = game.curr_player;
-          hands = new_hands;
-          human_index = game.human_index;
-          statuses = (update_status game game.curr_player Normal).statuses;
-        }
-      else if card_input = "Pass" then
-        let next_idx = (game.curr_player + 1) mod List.length game.hands in
-        {
-          curr_deck = game.curr_deck;
-          curr_card = game.curr_card;
-          curr_player = next_idx;
-          hands = game.hands;
-          human_index = game.human_index;
-          statuses = game.statuses;
-        }
-      else if card_input = "missed uno" then
-        let n = List.length (hands_to_list game) in
-        let prev_index =
-          match get_curr_card game with
-          | Skip _ -> (get_curr_player game - 2 + n) mod n
-          | _ -> (get_curr_player game - 1 + n) mod n
-        in
-        let new_hands, new_deck =
-          handle_draw 1 game.hands prev_index
-            (List.nth game.hands prev_index)
-            game.curr_deck
-        in
-        {
-          curr_deck = new_deck;
-          curr_card = game.curr_card;
-          curr_player = game.curr_player;
-          hands = new_hands;
-          human_index = game.human_index;
-          statuses = (update_status game game.curr_player Normal).statuses;
-        }
+      else if card_input = "Draw card" then user_draw game
+      else if card_input = "Pass" then user_pass game
+      else if card_input = "missed uno" then user_missed_uno game
       else
         let card = Card.to_card card_input in
         let curr_player = game.curr_player in

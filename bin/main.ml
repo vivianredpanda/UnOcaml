@@ -49,6 +49,7 @@ let () =
 
   match int_of_string num_players with
   | n ->
+      (* Setup game and deal cards *)
       print_endline "Dealing cards. . . ";
       let game_state = ref (Game.build n) in
       let curr_hand =
@@ -64,6 +65,7 @@ let () =
              (Game.get_curr_status !game_state)
              (Game.get_prev_status !game_state))
       do
+        (* Prompt user for input *)
         let curr_player = Game.get_curr_player !game_state in
         if curr_player = Game.get_human_index !game_state then begin
           print_endline "Your cards : ";
@@ -80,6 +82,7 @@ let () =
           print_string "> ";
           let user_in = read_line () in
           match String.lowercase_ascii user_in with
+          (* Handles draw and either passing or playing the card. *)
           | "draw card" | "draw" | "d" ->
               let new_game =
                 Game.handle_play !game_state
@@ -132,6 +135,7 @@ let () =
                         end)
               in
               handle_draw_input ()
+          (* Handles user's prompt for estimating next players # of cards *)
           | "estimate next" | "estimate" | "e" ->
               print_endline
                 ("Estimate that the next player has: "
@@ -139,6 +143,7 @@ let () =
                     (Game.estimate_next_num_cards !game_state curr_player
                        difficulty)
                 ^ " cards. \n")
+          (* Handles user input of a card to play. *)
           | _ -> (
               match Card.to_card user_in with
               | c -> (
@@ -175,6 +180,7 @@ let () =
                      Skip, Green 4, Yellow Plus 2)")
         end
         else
+          (* If the user is a robot: *)
           let num_cards =
             List.length
               (List.nth

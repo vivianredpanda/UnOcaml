@@ -50,10 +50,6 @@ module Card = struct
     | Yellow -> "Yellow"
     | Any -> "Any"
 
-  (* TODO: if input string has no spaces (List.nth will not work) make it not
-     raise failure AND if not formatted correctly return some output in terminal
-     instead *)
-
   (** Takes in a string representation of a card, and returns a card. Requires:
       name is in the form "Color Number" (eg: Red 6), "Color Reverse", "Color
       Plus Number" (eg: Yellow Plus 5), "Color Skip", "Color Wildcard" , "Color
