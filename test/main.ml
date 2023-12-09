@@ -701,6 +701,21 @@ let handle_play_pass_test name out game is_human =
   assert_equal ~printer:pp_bool out
     (curr_hand = orig_hand && (new_player = orig_player + 1 || new_player = 0))
 
+let handle_play_miss_test name out game is_human =
+  name >:: fun _ ->
+  let new_game = Game.handle_play game is_human "missed uno" in
+  let orig_player = Game.get_curr_player game in
+  let modify_player =
+    if orig_player - 1 < 0 then List.length (Game.hands_to_list game) - 1
+    else orig_player - 1
+  in
+  let curr_hand = Game.get_hand game modify_player in
+  let orig_hand = Game.get_hand new_game modify_player in
+  assert_equal ~printer:pp_bool
+    ~msg:("function: deal\ninputs: %s %s" ^ string_of_int modify_player)
+    out
+    (Hand.size orig_hand = Hand.size curr_hand + 1)
+
 let rec temp_game game n = Game.handle_play game false "play"
 
 let uno_tests =
@@ -786,6 +801,21 @@ let uno_tests =
       true;
     handle_play_pass_test "handle_play draw card many rounds after playing "
       true
+      (temp_game (Game.build 10) 40)
+      true;
+    handle_play_miss_test "handle_play pass single person" true (Game.build 1)
+      true;
+    handle_play_miss_test "handle_play draw card single person after playing"
+      true
+      (temp_game (Game.build 1) 4)
+      true;
+    handle_play_miss_test "handle_play draw card beginning multiplayer" true
+      (Game.build 4) true;
+    handle_play_miss_test "handle_play draw card after playing " true
+      (temp_game (Game.build 4) 12)
+      true;
+    handle_play_miss_test
+      "handle_play\n       draw card many rounds after playing " true
       (temp_game (Game.build 10) 40)
       true;
   ]
