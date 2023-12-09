@@ -1,8 +1,3 @@
-(* the cards available to draw from *)
-(* includes actions like drawing from the deck, resetting the deck, dealing *)
-
-(* smart deck & stupid/test deck *)
-
 open Card
 
 (** The signature of a deck of cards *)
