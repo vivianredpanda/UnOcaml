@@ -253,13 +253,15 @@ module Game = struct
     (* Estimates can range from real_num +/- a rand_int -> with the int being
        from 0 to frac_real_num *)
     let frac_real_num : int = real_num / frac in
-    let is_pos = Random.int 1 in
-    if is_pos = 0 then
-      match real_num with
-      | 2 -> real_num - Random.int 2
-      | 1 -> Random.int 2
-      | _ -> real_num - Random.int frac_real_num
-    else Random.int (real_num + frac_real_num)
+    if frac_real_num <> 0 then
+      let is_pos = Random.int 1 in
+      if is_pos = 0 then
+        match real_num with
+        | 2 -> real_num - Random.int 2
+        | 1 -> Random.int 2
+        | _ -> real_num - Random.int frac_real_num
+      else real_num + Random.int frac_real_num
+    else real_num
 
   let play_card (game : t) (card : Card.card) (new_hand : Hand.t) =
     let player = game.curr_player in
