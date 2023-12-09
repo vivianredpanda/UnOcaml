@@ -409,7 +409,7 @@ module Game = struct
          players) and then wildcards. *)
       (* The robot is "smart," so its estimates will be allowed to be more
          accurate *)
-      if next_status = Uno || estimate_next_num_cards game player 5 < 3 then
+      if next_status = Uno || estimate_next_num_cards game player 6 < 3 then
         if List.length same_col_plus > 0 then
           let plus_card = List.nth same_col_plus 0 in
           robo_play_card game player plus_card
@@ -432,21 +432,7 @@ module Game = struct
           let same_num_card = List.nth same_num_cards 0 in
           robo_play_card game player same_num_card
         else play_rand_robo_card game player next_card
-      else if
-        (* TODO: next check how many cards of the curr card color are left *)
-        (* look through valid cards: get the count for number of cards of the
-           same number number of skip cards number of reverse cards number of
-           plus 2 cards -> can check if next player is at uno - if so play a
-           plus 2 or skip if number of cards of the curr card's color is <= 1
-           then play a wildcard if exists *)
-        (* based on that number of some type of card -> do some move *)
-        (* normally just get rid of number cards *)
-        (* also ai for reverse - check other players' number of cards *)
-        (* same for skip or plus - we can prioritize playing a skip if estimate
-           if estimate low for next player *)
-        (* If you have cards of the same number but not many of the same color,
-           prioritize changing the color. *)
-        List.length same_col_cards <= 1 && List.length same_num_cards > 0
+      else if List.length same_col_cards <= 1 && List.length same_num_cards > 0
       then
         let same_num_card = List.nth same_num_cards 0 in
         robo_play_card game player same_num_card
