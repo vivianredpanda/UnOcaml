@@ -1,10 +1,3 @@
-(* represents the cards that one player currently has *)
-(* includes checking valid cards, checking for one card left, printing the cards
-   available, adding cards, list to hand*)
-(* checking if card is valid is a hidden method in here *)
-(* putting down card - checking if chosen card is valid (hidden method in .ml)
-   getting new card - returns what card you get - and remove that from deck
-   to_list list of cards to hand *)
 open Card
 open Deck
 

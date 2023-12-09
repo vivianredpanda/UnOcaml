@@ -1,7 +1,3 @@
-(* putting down card - checking if chosen card is valid (hidden method in .ml)
-   getting new card - returns what card you get - and remove that from deck
-   to_list list of cards to hand *)
-
 (** The signature of a Hand of 7 cards *)
 module type Hand = sig
   type t

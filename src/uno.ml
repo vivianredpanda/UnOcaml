@@ -361,7 +361,6 @@ module Game = struct
         statuses = new_game.statuses;
       }
     else
-      (* At least one valid card: *)
       let next_card = List.hd new_valid_cards in
       match next_card with
       | Wildcard _ | Wildcard4 _ ->
