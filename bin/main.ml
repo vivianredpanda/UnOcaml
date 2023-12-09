@@ -4,26 +4,6 @@ open Card
 open Deck
 open Uno
 
-(* read-eval-print loop *)
-(* let rec repl (eval : string -> string) : unit = print_string "> "; let input
-   = read_line () in match input with | "" -> print_endline "bye" | _ -> input
-   |> eval |> print_endline; repl eval *)
-
-(* let split_space uu = String.split_on_char ' ' uu |> List.filter (fun elt ->
-   elt <> "")
-
-   let user_slipt uu = match split_space uu with | [] -> failwith "" | l -> l *)
-
-(* let game_round game_state : Game.t = print_endline "Your cards : "; let
-   curr_hand = Game.get_hand game_state (Game.get_curr_player game_state) in let
-   game_state = Game.play_card game_state (Stdlib.fst (Deck.draw (Game.get_deck
-   game_state))) curr_hand in if Game.get_curr_player game_state <> 0 then
-   Game.robot_turn game_state (Game.get_curr_player game_state) else begin
-   print_endline "Please enter your move: "; print_string "> "; let user_in =
-   read_line () in let card_played = Card.to_card user_in in let game_state =
-   Game.play_card game_state card_played curr_hand in (* print_endline "Your
-   cards : "; *) game_state end *)
-
 let rec pp_list acc lst =
   match lst with
   | [] -> acc
@@ -32,16 +12,9 @@ let rec pp_list acc lst =
 
 let check_win s1 s2 = if s1 = "Won" || s2 = "Won" then true else false
 
-(* let draw (game_s : Game.t) = let card_drawn = Deck.draw (Game.get_deck
-   game_s) in let new_hand = Hand.add_card (Stdlib.fst card_drawn)
-   (Game.get_hand game_s (Game.get_curr_player game_s)) in { curr_deck :
-   Stdlib.snd card_drawn; curr_card : Card.card; curr_player : int; hands :
-   Hand.t list; human_index : int; } game_s *)
-
 (*********** command line interface ***********)
 let () =
   print_endline "\n\nWelcome to UnOCaml. \n";
-  (*print_endline "\n\n\n";*)
   print_endline
     "\n\n\
     \ Here are the rules for the game: \n\
@@ -57,7 +30,7 @@ let () =
     \ The accuracy of the estimate will be determined by the difficulty \n\n\
     \ that users input at the start of the game. The more difficult it is, \n\n\
     \ the more inaccurate the estimate is likely to be. \n\n";
-  (* TODO: add instructions for how to input cards *)
+
   print_endline "If you want to use debug mode, please enter debug:";
   print_string "> ";
   let debug = String.lowercase_ascii (read_line ()) = "debug" in
@@ -74,7 +47,6 @@ let () =
   let d = read_line () in
   let difficulty = if d = "easy" then 6 else if d = "medium" then 4 else 2 in
 
-  (* while (int_of_string num_players <= 4 && int_of_string num_players >= 1) *)
   match int_of_string num_players with
   | n ->
       print_endline "Dealing cards. . . ";
@@ -157,9 +129,6 @@ let () =
                               print_endline "Missed UnOCaml. Drawing card.";
                               game_state :=
                                 Game.handle_play !game_state true "missed uno"
-                          (*TO_DO : add in uno.ml handel_play this option and
-                            itll draw card for prev player & update status back
-                            to Normal*)
                         end)
               in
               handle_draw_input ()
@@ -169,14 +138,11 @@ let () =
                 ^ string_of_int
                     (Game.estimate_next_num_cards !game_state curr_player
                        difficulty)
-                ^ "cards. \n")
+                ^ " cards. \n")
           | _ -> (
               match Card.to_card user_in with
               | c -> (
                   let curr_player = Game.get_curr_player !game_state in
-                  (* let new_game = Game.handle_play !game_state (curr_player =
-                     Game.get_human_index !game_state) user_in *)
-                  (* in *)
                   match
                     Game.handle_play !game_state
                       (curr_player = Game.get_human_index !game_state)
@@ -218,8 +184,6 @@ let () =
           game_state :=
             Game.robot_turn !game_state (Game.get_curr_player !game_state);
           let n = List.length (Game.hands_to_list !game_state) in
-          (* TODO: the indices aren't really consistent especially after playing
-             Skip or Reverse cards *)
           let prev_index =
             match Game.get_curr_card !game_state with
             | Skip _ -> (Game.get_curr_player !game_state - 2 + n) mod n
@@ -255,5 +219,3 @@ let () =
               ("\n" ^ String.concat "\n" (List.map string_of_hand hs) ^ "\n")
           else ()
       done
-(* if (Game.get_prev_status !game_state = "Won") then print_endline "YOU WON" in
-   () else print_endline "" in (); *)
