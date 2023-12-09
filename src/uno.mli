@@ -68,6 +68,11 @@ module type Game = sig
   val robot_turn : t -> int -> t
   (** Given a current game state and the index of the current (robot) player,
       plays a robot's move. *)
+
+  val estimate_next_num_cards : t -> int -> int
+  (** Given a current game state and the index of the current player, returns an
+      estimate (possibly correct) of the next player's number of cards (adds or
+      subtracts a random number to cloud the real number) *)
 end
 
 module Game : Game

@@ -23,6 +23,7 @@ module type Hand = sig
   val get_reverse : t -> Card.color -> t
   val get_plus : t -> Card.color -> t
   val get_wild : t -> t
+  val get_wild4 : t -> t
   val size : t -> int
 end
 
@@ -124,7 +125,18 @@ module Hand : Hand = struct
       List.filter
         (fun c ->
           match c with
-          | Card.Wildcard _ | Card.Wildcard4 _ -> true
+          | Card.Wildcard _ -> true
+          | _ -> false)
+        (to_list h)
+    in
+    of_list lst
+
+  let get_wild4 (h : t) : t =
+    let lst =
+      List.filter
+        (fun c ->
+          match c with
+          | Card.Wildcard4 _ -> true
           | _ -> false)
         (to_list h)
     in

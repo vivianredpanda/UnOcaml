@@ -44,7 +44,10 @@ module type Hand = sig
       color as the one passed in. *)
 
   val get_wild : t -> t
-  (** Takes in a hand and counts the number of wildcards or wildcard4's. *)
+  (** Takes in a hand and counts the number of wildcards. *)
+
+  val get_wild4 : t -> t
+  (** Takes in a hand and counts the number of wildcard4's. *)
 
   val size : t -> int
   (** Takes in a Hand of cards and returns the number of cards in the Hand *)
