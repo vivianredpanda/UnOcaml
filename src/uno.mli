@@ -54,6 +54,13 @@ module type Game = sig
       picks random starter card and have leftover deck. Takes in the number of
       players. *)
 
+  val estimate_next_num_cards : t -> int -> int -> int
+  (** Given a current game state and the index of the current player, returns an
+      estimate (possibly correct) of the next player's number of cards. The
+      second passed in int is representative of the difficulty inputted by users
+      at the start - the more difficult, the smaller the number for a larger the
+      estimate's range. (range is determined by 1/input) *)
+
   val play_card : t -> Card.card -> Hand.t -> t
   (** Progress the game based on a card to play. Takes in the hand where the
       card has been played from, which is equivalent to the current player's
@@ -61,18 +68,13 @@ module type Game = sig
       [{a, b, c}], card to play is [{b}], so input hand must be [{a, c}]. Raises
       Invalid_argument if the card to play is not valid by the rules of Uno. *)
 
-  val handle_play : t -> bool -> string -> t
-  (** [handle_play g b c] progresses the game based on a user's move. Raises
-      Invalid_argument if [c] is [""], ["Any Wildcard"], or ["Any Wildcard4"]. *)
-
   val robot_turn : t -> int -> t
   (** Given a current game state and the index of the current (robot) player,
       plays a robot's move. *)
 
-  val estimate_next_num_cards : t -> int -> int
-  (** Given a current game state and the index of the current player, returns an
-      estimate (possibly correct) of the next player's number of cards (adds or
-      subtracts a random number to cloud the real number) *)
+  val handle_play : t -> bool -> string -> t
+  (** [handle_play g b c] progresses the game based on a user's move. Raises
+      Invalid_argument if [c] is [""], ["Any Wildcard"], or ["Any Wildcard4"]. *)
 end
 
 module Game : Game

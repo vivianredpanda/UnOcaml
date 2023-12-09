@@ -22,10 +22,10 @@ module type Game = sig
   val hands_to_list : t -> Card.card list list
   val check_play : t -> Card.card -> bool
   val build : int -> t
+  val estimate_next_num_cards : t -> int -> int -> int
   val play_card : t -> Card.card -> Hand.t -> t
-  val handle_play : t -> bool -> string -> t
   val robot_turn : t -> int -> t
-  val estimate_next_num_cards : t -> int -> int
+  val handle_play : t -> bool -> string -> t
 end
 
 (** A game of uno. *)
@@ -243,6 +243,24 @@ module Game = struct
       statuses = new_statuses;
     }
 
+  let estimate_next_num_cards (game : t) (player : int) (frac : int) : int =
+    let next_player_idx =
+      next_player Card.(Wildcard Any) player (List.length game.hands)
+    in
+    let real_num =
+      List.length (List.nth (hands_to_list game) next_player_idx)
+    in
+    (* Estimates can range from real_num +/- a rand_int -> with the int being
+       from 0 to frac_real_num *)
+    let frac_real_num : int = real_num / frac in
+    let is_pos = Random.int 1 in
+    if is_pos = 0 then
+      match real_num with
+      | 2 -> real_num - Random.int 2
+      | 1 -> Random.int 2
+      | _ -> real_num - Random.int frac_real_num
+    else Random.int (real_num + frac_real_num)
+
   let play_card (game : t) (card : Card.card) (new_hand : Hand.t) =
     let player = game.curr_player in
     let hands, new_deck = update_hands game player new_hand card in
@@ -389,7 +407,9 @@ module Game = struct
       (* If the next player has one card left, prioritizes playing different
          types of cards - first plus, then skip, then reverse (if more than 2
          players) and then wildcards. *)
-      if next_status = Uno then
+      (* The robot is "smart," so its estimates will be allowed to be more
+         accurate *)
+      if next_status = Uno || estimate_next_num_cards game player 5 < 3 then
         if List.length same_col_plus > 0 then
           let plus_card = List.nth same_col_plus 0 in
           robo_play_card game player plus_card
@@ -510,16 +530,4 @@ module Game = struct
           play_card game card new_hand
         else raise (Invalid_argument "invalid move")
     else robot_turn game game.curr_player
-
-  let estimate_next_num_cards (game : t) (player : int) : int =
-    let next_player_idx =
-      next_player Card.(Wildcard Any) player (List.length game.hands)
-    in
-    let real_num =
-      List.length (List.nth (hands_to_list game) next_player_idx)
-    in
-    let half_real_num : int = real_num / 2 in
-    let is_pos = Random.int 1 in
-    if is_pos = 0 then Random.int (real_num - half_real_num)
-    else Random.int (real_num + half_real_num)
 end

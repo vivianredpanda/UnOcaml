@@ -51,7 +51,12 @@ let () =
     \ number, color, or action of the previous card played. If no such card \n\n\
     \ exists, you must draw a card. If this card is valid, you may play it. \n\n\
     \ Play continues until one player has gotten rid of all their cards. \n\n\
-    \ Please refer to the official Uno manuel for further clarifications. \n\n";
+    \ Please refer to the official Uno manual for further clarifications. \n\n\
+    \ Additionally, UnOCaml has a twist on traditional Uno. \n\n\
+    \ Users can get an estimate of the next player's number of cards. \n\n\
+    \ The accuracy of the estimate will be determined by the difficulty \n\n\
+    \ that users input at the start of the game. The more difficult it is, \n\n\
+    \ the more inaccurate the estimate is likely to be. \n\n";
   (* TODO: add instructions for how to input cards *)
   print_endline "If you want to use debug mode, please enter debug:";
   print_string "> ";
@@ -59,6 +64,16 @@ let () =
   print_endline "Please enter the number of players:";
   print_string "> ";
   let num_players = read_line () in
+  print_endline
+    "Please enter the difficulty you would like to play at: easy, medium, or \
+     hard.";
+  print_endline
+    "(Increasing difficulty means that estimates of the next player's number \
+     of cards will be more inaccurate)";
+  print_string "> ";
+  let d = read_line () in
+  let difficulty = if d = "easy" then 6 else if d = "medium" then 4 else 2 in
+
   (* while (int_of_string num_players <= 4 && int_of_string num_players >= 1) *)
   match int_of_string num_players with
   | n ->
@@ -87,11 +102,13 @@ let () =
           print_endline
             ("Current Card : "
             ^ Card.string_of_card (Game.get_curr_card !game_state));
-          print_endline "Please enter your move [color card] or 'Draw card': ";
+          print_endline
+            "Please enter your move [color card] or 'Draw card' or 'Estimate \
+             next':";
           print_string "> ";
           let user_in = read_line () in
           match String.lowercase_ascii user_in with
-          | "draw card" | "draw" ->
+          | "draw card" | "draw" | "d" ->
               let new_game =
                 Game.handle_play !game_state
                   (curr_player = Game.get_human_index !game_state)
@@ -146,6 +163,13 @@ let () =
                         end)
               in
               handle_draw_input ()
+          | "estimate next" | "estimate" | "e" ->
+              print_endline
+                ("Estimate that the next player has: "
+                ^ string_of_int
+                    (Game.estimate_next_num_cards !game_state curr_player
+                       difficulty)
+                ^ "cards. \n")
           | _ -> (
               match Card.to_card user_in with
               | c -> (
