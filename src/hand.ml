@@ -23,6 +23,7 @@ module type Hand = sig
   val get_reverse : t -> Card.color -> t
   val get_plus : t -> Card.color -> t
   val get_wild : t -> t
+  val size : t -> int
 end
 
 (** Hand that consists of items of type card *)
@@ -128,4 +129,6 @@ module Hand : Hand = struct
         (to_list h)
     in
     of_list lst
+
+  let size (lst : t) = List.length lst
 end

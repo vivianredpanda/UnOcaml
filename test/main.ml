@@ -680,6 +680,29 @@ let handle_play_invalid_arg_test n is_human card_input _ =
       try Game.handle_play game is_human card_input
       with Invalid_argument _ -> raise exn)
 
+(* get_curr_card, check_skip, check_reverse, check_number, check_play (),
+   status_to_string(win/uno) *)
+let handle_play_draw_test name out game is_human =
+  name >:: fun _ ->
+  let orig_player = Game.get_curr_player game in
+  let curr_hand = Game.get_hand game orig_player in
+  let new_game = Game.handle_play game is_human "Draw card" in
+  let orig_hand = Game.get_hand new_game orig_player in
+  assert_equal ~printer:pp_bool out
+    (Hand.size orig_hand = Hand.size curr_hand + 1)
+
+let handle_play_pass_test name out game is_human =
+  name >:: fun _ ->
+  let orig_player = Game.get_curr_player game in
+  let curr_hand = Game.get_hand game orig_player in
+  let new_game = Game.handle_play game is_human "Pass" in
+  let orig_hand = Game.get_hand new_game orig_player in
+  let new_player = Game.get_curr_player new_game in
+  assert_equal ~printer:pp_bool out
+    (curr_hand = orig_hand && (new_player = orig_player + 1 || new_player = 0))
+
+let rec temp_game game n = Game.handle_play game false "play"
+
 let uno_tests =
   [
     build_deck_test "build 4 removes 4*7 + 1 cards from starter deck" 79 4;
@@ -735,6 +758,36 @@ let uno_tests =
     >:: handle_play_invalid_arg_test 3 true "Any Wildcard";
     "handle_play of human player with Any Wildcard4 input"
     >:: handle_play_invalid_arg_test 3 true "Any Wildcard4";
+    handle_play_draw_test "handle_play draw card single person beginning" true
+      (Game.build 1) true;
+    handle_play_draw_test "handle_play draw card single person after playing"
+      true
+      (temp_game (Game.build 1) 5)
+      true;
+    handle_play_draw_test "handle_play draw card beginning multiplayer" true
+      (Game.build 4) true;
+    handle_play_draw_test "handle_play draw card after playing " true
+      (temp_game (Game.build 4) 8)
+      true;
+    handle_play_draw_test "handle_play draw card many rounds after playing "
+      true
+      (temp_game (Game.build 6) 35)
+      true;
+    handle_play_pass_test "handle_play pass single person" true (Game.build 1)
+      true;
+    handle_play_pass_test "handle_play draw card single person after playing"
+      true
+      (temp_game (Game.build 1) 4)
+      true;
+    handle_play_pass_test "handle_play draw card beginning multiplayer" true
+      (Game.build 4) true;
+    handle_play_pass_test "handle_play draw card after playing " true
+      (temp_game (Game.build 4) 12)
+      true;
+    handle_play_pass_test "handle_play draw card many rounds after playing "
+      true
+      (temp_game (Game.build 10) 40)
+      true;
   ]
 
 let tests =

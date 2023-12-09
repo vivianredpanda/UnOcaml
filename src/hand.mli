@@ -45,6 +45,9 @@ module type Hand = sig
 
   val get_wild : t -> t
   (** Takes in a hand and counts the number of wildcards or wildcard4's. *)
+
+  val size : t -> int
+  (** Takes in a Hand of cards and returns the number of cards in the Hand *)
 end
 
 module Hand : Hand
