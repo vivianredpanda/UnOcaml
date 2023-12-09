@@ -401,6 +401,13 @@ let get_wild_test name out h =
     out
     (Hand.to_list (Hand.get_wild h))
 
+let get_wild4_test name out h =
+  name >:: fun _ ->
+  assert_equal ~cmp:cmp_bag_like_lists
+    ~printer:(pp_list Card.string_of_card)
+    out
+    (Hand.to_list (Hand.get_wild4 h))
+
 let hand_tests =
   [
     "check_valid_card for existing card in the deck"
@@ -552,9 +559,10 @@ let hand_tests =
     get_plus_test "get_plus plus in hand of wrong color" [] hand1 Green;
     get_wild_test "get_wild empty hand" [] hand_empty;
     get_wild_test "get_wild no wilds in hand" [] hand2;
-    get_wild_test "get_wild 2 occurences"
-      [ unused_wildcard; unused_wildcard4 ]
-      hand1;
+    get_wild_test "get_wild 1 occurence" [ unused_wildcard ] hand1;
+    get_wild4_test "get_wild4 empty hand" [] hand_empty;
+    get_wild4_test "get_wild4 no wild4s in hand" [] hand2;
+    get_wild4_test "get_wild4 1 occurence" [ unused_wildcard4 ] hand1;
   ]
 
 let build_deck_test name out n =
